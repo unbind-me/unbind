@@ -1,2 +1,2 @@
-# unbind-flutter
-Unbind built on Flutter.
+# unbind
+Unbind will be built using Flutter.
