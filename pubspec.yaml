@@ -36,6 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   screen_time_api_ios: ^0.0.4
+  flutter_svg: ^2.0.14
 
 dev_dependencies:
   flutter_test:
