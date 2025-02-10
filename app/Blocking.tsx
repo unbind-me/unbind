@@ -4,7 +4,7 @@ import { Text, View, StyleSheet } from "react-native";
 const Block = () => {
   return (
     <View style={styles.container}>
-      <Text>Whats up</Text>
+      <Text style={{color: "red"}}>Whats up</Text>
     </View>
   );
 };

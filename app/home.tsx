@@ -8,7 +8,7 @@ const Home = () => {
         source={require("../assets/images/stats.png")}
         style={styles.stats}
       />
-      <Text>Home</Text>
+      <Text style={{color: "white"}}>3h on instagram gooner</Text>
     </View>
   );
 };
@@ -21,8 +21,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#0d0d0d",
   },
   stats: {
-    width: 130,
-    height: 130,
+    width: 160,
+    height: 160,
     position: "absolute",
     top: 100,
   },
