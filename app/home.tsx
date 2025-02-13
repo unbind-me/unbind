@@ -1,13 +1,11 @@
 import React from "react";
 import { Text, View, StyleSheet, Image } from "react-native";
+import PieChart from "./PieChart"
 
 const Home = () => {
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../assets/images/stats.png")}
-        style={styles.stats}
-      />
+      <PieChart/>
       <Text style={{color: "white"}}>3h on instagram gooner</Text>
     </View>
   );
