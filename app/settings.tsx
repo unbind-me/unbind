@@ -1,9 +1,6 @@
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
+import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import DropdownPicker from "react-native-dropdown-picker";
-import React, { useState } from "react";
-
 
 const Settings = () => {
   const [open, setOpen] = useState(false);
@@ -24,7 +21,6 @@ const Settings = () => {
         setOpen={setOpen}
         setValue={setSelectedValue}
       />
-      <ThemedText>Settings</ThemedText>
     </View>
   );
 };
@@ -34,9 +30,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#303030"
-  }
-
+    backgroundColor: "#303030",
+  },
 });
 
 export default Settings;
