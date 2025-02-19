@@ -1,4 +1,3 @@
-import { useNavigation } from "expo-router";
 import React, { useRef } from "react";
 import {
   View,

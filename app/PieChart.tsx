@@ -4,7 +4,7 @@ import PieChart from 'react-native-pie-chart';
 
 export default class Stats extends Component {
   render() {
-    const wh = 200;
+    const wh = 180;
 
     const series = [
       {value: 430, color: '#920000'},
