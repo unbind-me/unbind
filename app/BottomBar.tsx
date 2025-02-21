@@ -33,6 +33,7 @@ export default function BottomBar({ navigation }: any) {
               const { x } = event.nativeEvent.layout;
               buttonPositions.current[index] = x;
             }}
+hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}
           >
             <Icon name={icon} size={24} color="lightgray" />
           </TouchableOpacity>
