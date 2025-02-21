@@ -16,16 +16,16 @@ const Block = () => {
     {}
   );
   const [apps] = useState([
-    { name: "Facebook", logo: require("./assets/facebook.png") },
-    { name: "Instagram", logo: require("./assets/instagram.png") },
-    { name: "Twitter", logo: require("./assets/twitter.png") },
-    { name: "Snapchat", logo: require("./assets/snapchat.png") },
-    { name: "YouTube", logo: require("./assets/youtube.png") },
-    { name: "WhatsApp", logo: require("./assets/whatsapp.png") },
-    { name: "TikTok", logo: require("./assets/tiktok.png") },
-    { name: "Reddit", logo: require("./assets/reddit.png") },
-    { name: "Pinterest", logo: require("./assets/pinterest.png") },
-    { name: "LinkedIn", logo: require("./assets/linkedin.png") },
+    { name: "Facebook", logo: require("../assets/logos/facebook.png") },
+    { name: "Instagram", logo: require("../assets/logos/instagram.png") },
+    { name: "Twitter", logo: require("../assets/logos/twitter.png") },
+    { name: "Snapchat", logo: require("../assets/logos/snapchat.png") },
+    { name: "YouTube", logo: require("../assets/logos/youtube.png") },
+    { name: "WhatsApp", logo: require("../assets/logos/whatsapp.png") },
+    { name: "TikTok", logo: require("../assets/logos/tiktok.png") },
+    { name: "Reddit", logo: require("../assets/logos/reddit.png") },
+    { name: "Pinterest", logo: require("../assets/logos/pinterest.png") },
+    { name: "LinkedIn", logo: require("../assets/logos/linkedin.png") },
   ]);
 
   // Filter the apps based on the search query
@@ -61,7 +61,7 @@ const Block = () => {
         renderItem={({ item }) => (
           <View style={styles.appItemContainer}>
             {/* App Logo */}
-            {/*<Image source={item.logo} style={styles.logo} />}
+            <Image source={item.logo} style={styles.logo} />
             {/* App Name */}
             <Text style={styles.appName}>{item.name}</Text>
             {/* Toggle Selection */}
