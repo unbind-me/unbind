@@ -37,7 +37,7 @@ export default function BottomBar({ navigation }: any) {
               const { x, width } = event.nativeEvent.layout;
               buttonPositions.current[index] = x+10; // Store the center of each button
             }}
-hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}
+            hitSlop={{ top: 20, bottom: 20, left: 35, right: 35 }}
           >
             <Icon name={icon} size={24} color="lightgray" />
           </TouchableOpacity>

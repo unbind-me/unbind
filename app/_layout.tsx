@@ -26,7 +26,7 @@ const _layout = () => {
     <TabNavigator.Navigator
       screenOptions={{
         headerShown: false,
-        animation: "shift",
+        animation: "none",
       }}
       tabBar={(props) => <BottomBar {...props} />}
     >

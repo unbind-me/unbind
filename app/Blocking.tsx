@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 15,
+    width: 250
   },
   logo: {
     width: 30,
