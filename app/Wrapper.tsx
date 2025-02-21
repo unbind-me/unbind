@@ -1,23 +1,31 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import axios from 'axios';
-
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI("AIzaSyA2WhWi0ENAMjEGTAWtG3Bvso-1AyZA0K8");
+const genAI = new GoogleGenerativeAI("AIzaSyA2WhWi0ENAMjEGTAWtG3Bvso-1AyZA0K8"); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-const result = model.generateContent(prompt);
-console.log(result.response.text());
+const prompt = "Explain how AI works";
 
-async function sendMessageToAI(message: any) {
-  const result = await model.generateContent(prompt);
-  console.log(result.response.text());
-}
 
 export default function Wrapper() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
+
+  async function sendMessageToAI() {
+    try {
+      // Send the prompt as an object with a key "prompt"
+      const result = await model.generateContent({ prompt: input });
+      // Use result.response directly instead of calling .text()
+      setResponse(result.response);
+      const test = await model.generateContent(prompt);
+      console.log(test.response);  
+    } catch (error) {
+      console.error("Error sending message to AI:", error);
+    }
+  }
+
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Ollama Prompt</Text>
@@ -49,10 +57,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     backgroundColor: "rgb(22, 22, 22)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
     elevation: 3,
     marginTop: 20,
   },
@@ -62,7 +66,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
     color: "#fff",
-
   },
   input: {
     width: "100%",
