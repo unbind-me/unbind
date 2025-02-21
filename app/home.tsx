@@ -7,7 +7,7 @@ const Home = () => {
   return (
     <View style={styles.container}>
       <PieChart />
-      <Text style={{ color: "white" }}>3h on Instagram</Text>
+      <Text style={{ color: "white" }}>Sample Text</Text>
       <Wrapper />
     </View>
   );
