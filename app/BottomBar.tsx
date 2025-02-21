@@ -4,13 +4,17 @@ import Icon from "react-native-vector-icons/Ionicons";
 
 export default function BottomBar({ navigation }: any) {
   const buttonPositions = useRef<number[]>([]);
-  const position = useRef(new Animated.Value(-37.66)).current;
+  const position = useRef(new Animated.Value(-42)).current; // Default to 0 for now
   const pages = ["Home", "Block", "Settings"];
 
   const moveBox = (index: number) => {
     if (buttonPositions.current[index] !== undefined) {
+      const buttonCenter = buttonPositions.current[index]; // Center of the button
+      const sliderWidth = 102.5; // Width of the slider
+      const newPosition = buttonCenter - sliderWidth; // Center the slider on the button's center
+      
       Animated.timing(position, {
-        toValue: buttonPositions.current[index] - 85,
+        toValue: newPosition,
         duration: 300,
         useNativeDriver: true,
         easing: Easing.bezier(0.4, 0, 0.2, 1),
@@ -30,8 +34,8 @@ export default function BottomBar({ navigation }: any) {
               navigation.navigate(pages[index]);
             }}
             onLayout={(event) => {
-              const { x } = event.nativeEvent.layout;
-              buttonPositions.current[index] = x;
+              const { x, width } = event.nativeEvent.layout;
+              buttonPositions.current[index] = x+10; // Store the center of each button
             }}
           >
             <Icon name={icon} size={24} color="lightgray" />
@@ -39,8 +43,7 @@ export default function BottomBar({ navigation }: any) {
         )
       )}
       <Animated.View
-        style={[styles.slider, { transform: [{ translateX: position }] }]}
-      />
+        style={[styles.slider, { transform: [{ translateX: position }] }]}/>
     </View>
   );
 }
@@ -60,9 +63,8 @@ const styles = StyleSheet.create({
   },
   slider: {
     position: "absolute",
-    width: 100,
+    width: 107.5,
     height: 40,
-    bottom: 5,
     backgroundColor: "#515151",
     borderRadius: 25,
     zIndex: 10,

@@ -5,16 +5,16 @@ const Block = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedApps, setSelectedApps] = useState<{ [key: string]: boolean }>({});
   const [apps] = useState([
-    { name: "Facebook", logo: require("./assets/facebook.png") },
-    { name: "Instagram", logo: require("./assets/instagram.png") },
-    { name: "Twitter", logo: require("./assets/twitter.png") },
-    { name: "Snapchat", logo: require("./assets/snapchat.png") },
-    { name: "YouTube", logo: require("./assets/youtube.png") },
-    { name: "WhatsApp", logo: require("./assets/whatsapp.png") },
-    { name: "TikTok", logo: require("./assets/tiktok.png") },
-    { name: "Reddit", logo: require("./assets/reddit.png") },
-    { name: "Pinterest", logo: require("./assets/pinterest.png") },
-    { name: "LinkedIn", logo: require("./assets/linkedin.png") },
+    { name: "Facebook"},//, logo: require("./assets/facebook.png") },
+    { name: "Instagram"},//, logo: require("./assets/instagram.png") },
+    { name: "Twitter"},//, logo: require("./assets/twitter.png") },
+    { name: "Snapchat"},//, logo: require("./assets/snapchat.png") },
+    { name: "YouTube"},//, logo: require("./assets/youtube.png") },
+    { name: "WhatsApp"},//, logo: require("./assets/whatsapp.png") },
+    { name: "TikTok"},//, logo: require("./assets/tiktok.png") },
+    { name: "Reddit"},//, logo: require("./assets/reddit.png") },
+    { name: "Pinterest"},//, logo: require("./assets/pinterest.png") },
+    { name: "LinkedIn"},//, logo: require("./assets/linkedin.png") },
   ]);
 
   // Filter the apps based on the search query
@@ -48,7 +48,7 @@ const Block = () => {
         renderItem={({ item }) => (
           <View style={styles.appItemContainer}>
             {/* App Logo */}
-            <Image source={item.logo} style={styles.logo} />
+            {/*<Image source={item.logo} style={styles.logo} />}
             {/* App Name */}
             <Text style={styles.appName}>{item.name}</Text>
             {/* Toggle Selection */}
@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "black",
     padding: 20,
+    
   },
   title: {
     color: "red",
@@ -92,6 +93,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 15,
+    width: 250
   },
   logo: {
     width: 30,

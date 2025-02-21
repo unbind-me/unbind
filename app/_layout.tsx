@@ -4,14 +4,30 @@ import Settings from "./settings";
 import BottomBar from "./BottomBar";
 import Block from "./Blocking";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 
-// Create the TabNavigator
 const TabNavigator = createBottomTabNavigator();
-
+const MyTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: 'blue'
+  },
+};
+const App = () => {
+  return (
+    <NavigationContainer theme={MyTheme}>
+      <_layout />
+    </NavigationContainer>
+  );
+};
 const _layout = () => {
   return (
     <TabNavigator.Navigator
-      screenOptions={{ headerShown: false, animation: "shift" }}
+      screenOptions={{
+        headerShown: false,
+        animation: "shift",
+      }}
       tabBar={(props) => <BottomBar {...props} />}
     >
       <TabNavigator.Screen name="Home" component={Home} />
