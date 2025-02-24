@@ -11,6 +11,8 @@ import Icon from "react-native-vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 
 const screenWidth = Dimensions.get("window").width;
+const screenW = screenWidth/4;
+const screenHeight = Dimensions.get("window").height;
 
 export default function BottomBar({ navigation }: any) {
   const buttonPositions = useRef<number[]>([]);
@@ -20,7 +22,7 @@ export default function BottomBar({ navigation }: any) {
   const moveBox = (index: number) => {
     if (buttonPositions.current[index] !== undefined) {
       const buttonCenter = buttonPositions.current[index]; // Center of the button
-      const sliderWidth = screenWidth / 4; // Width of the slider
+      const sliderWidth = screenW; // Width of the slider
       const newPosition = buttonCenter - sliderWidth; // Center the slider on the button's center
 
       Animated.timing(position, {
@@ -72,8 +74,8 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 10,
     right: 10,
-    height: 50,
-    backgroundColor: "#2C2C2C",
+    height: screenHeight / 20,
+    backgroundColor: "#191919",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
@@ -81,9 +83,9 @@ const styles = StyleSheet.create({
   },
   slider: {
     position: "absolute",
-    width: screenWidth / 4,
-    height: 40,
-    backgroundColor: "#515151",
+    width: screenW,
+    height: screenHeight / 20,
+    backgroundColor: "#0D0D0D",
     borderRadius: 25,
     zIndex: 10,
   },
