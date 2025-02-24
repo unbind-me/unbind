@@ -1,31 +1,48 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import axios from 'axios';
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  FlatView,
+} from "react-native";
 
-const genAI = new GoogleGenerativeAI("AIzaSyA2WhWi0ENAMjEGTAWtG3Bvso-1AyZA0K8"); // Replace with your actual API key
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} = require("@google/generative-ai");
 
-const prompt = "Explain how AI works";
+const apiKey = "AIzaSyA2WhWi0ENAMjEGTAWtG3Bvso-1AyZA0K8";
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+});
 
+const generationConfig = {
+  temperature: 1,
+  topP: 0.95,
+  topK: 40,
+  maxOutputTokens: 8192,
+  responseMimeType: "text/plain",
+};
 
 export default function Wrapper() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
-
-  async function sendMessageToAI() {
+  async function run(message: String) {
     try {
-      // Send the prompt as an object with a key "prompt"
-      const result = await model.generateContent({ prompt: input });
-      // Use result.response directly instead of calling .text()
-      setResponse(result.response);
-      const test = await model.generateContent(prompt);
-      console.log(test.response);  
+      const chatSession = model.startChat({
+        generationConfig,
+        history: [],
+      });
+      const result = await chatSession.sendMessage(message);
+      setResponse(result.response.text());
     } catch (error) {
-      console.error("Error sending message to AI:", error);
+      console.log(error);
     }
   }
-
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Ollama Prompt</Text>
@@ -35,7 +52,7 @@ export default function Wrapper() {
         value={input}
         onChangeText={setInput}
       />
-      <TouchableOpacity onPress={sendMessageToAI} style={styles.button}>
+      <TouchableOpacity onPress={() => run(input)} style={styles.button}>
         <Text style={styles.buttonText}>Send to Ollama</Text>
       </TouchableOpacity>
       {response ? (

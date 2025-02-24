@@ -1,6 +1,16 @@
 import React, { useRef } from "react";
-import { View, StyleSheet, TouchableOpacity, Animated, Easing } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Easing,
+  Dimensions,
+} from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import * as Haptics from "expo-haptics";
+
+const screenWidth = Dimensions.get("window").width;
 
 export default function BottomBar({ navigation }: any) {
   const buttonPositions = useRef<number[]>([]);
@@ -10,9 +20,9 @@ export default function BottomBar({ navigation }: any) {
   const moveBox = (index: number) => {
     if (buttonPositions.current[index] !== undefined) {
       const buttonCenter = buttonPositions.current[index]; // Center of the button
-      const sliderWidth = 102.5; // Width of the slider
+      const sliderWidth = screenWidth / 4; // Width of the slider
       const newPosition = buttonCenter - sliderWidth; // Center the slider on the button's center
-      
+
       Animated.timing(position, {
         toValue: newPosition,
         duration: 300,
@@ -35,7 +45,13 @@ export default function BottomBar({ navigation }: any) {
             }}
             onLayout={(event) => {
               const { x, width } = event.nativeEvent.layout;
-              buttonPositions.current[index] = x+10; // Store the center of each button
+              buttonPositions.current[index] = x + 10; // Store the center of each button
+            }}
+            onPressIn={(ev) => {
+              if (process.env.EXPO_OS === "ios") {
+                // Add a soft haptic feedback when pressing down on the tabs.
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
             }}
             hitSlop={{ top: 20, bottom: 20, left: 35, right: 35 }}
           >
@@ -44,7 +60,8 @@ export default function BottomBar({ navigation }: any) {
         )
       )}
       <Animated.View
-        style={[styles.slider, { transform: [{ translateX: position }] }]}/>
+        style={[styles.slider, { transform: [{ translateX: position }] }]}
+      />
     </View>
   );
 }
@@ -64,7 +81,7 @@ const styles = StyleSheet.create({
   },
   slider: {
     position: "absolute",
-    width: 107.5,
+    width: screenWidth / 4,
     height: 40,
     backgroundColor: "#515151",
     borderRadius: 25,

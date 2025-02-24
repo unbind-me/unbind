@@ -1,23 +1,24 @@
 import React from "react";
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, ScrollView } from "react-native";
 import PieChart from "./PieChart";
 import Wrapper from "./Wrapper";
 
 const Home = () => {
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ alignItems: "center", justifyContent: "center" }}
+    >
       <PieChart />
-      <Text style={{ color: "white" }}>Sample Text</Text>
       <Wrapper />
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 100,
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
     backgroundColor: "#000000",
   },
 });

@@ -4,14 +4,14 @@ import Settings from "./settings";
 import BottomBar from "./BottomBar";
 import Block from "./Blocking";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 
 const TabNavigator = createBottomTabNavigator();
 const MyTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: 'blue'
+    background: "blue",
   },
 };
 const App = () => {
