@@ -15,5 +15,5 @@
   "include": [
     "**/*.ts",
     "**/*.tsx"
-  ]
+, "app/index.tsx.disabled"  ]
 }

@@ -18,7 +18,7 @@ const screenHeight = Dimensions.get("window").height;
 
 export default function BottomBar({ navigation }: any) {
   const buttonPositions = useRef<number[]>([]);
-  const position = useRef(new Animated.Value(0)).current; // Default to 0 for now
+  const position = useRef(new Animated.Value(-screenW/2.5)).current; // Default to 0 for now
   const pages = ["Home", "Block", "Settings"];
 
   const moveBox = (index: number) => {
