@@ -18,7 +18,7 @@ const Home = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1F1F1F",
+    backgroundColor: "#272727",
   },
 });
 

@@ -12,20 +12,30 @@ const {
   GoogleGenerativeAI,
   HarmCategory,
   HarmBlockThreshold,
+  SchemaType,
 } = require("@google/generative-ai");
 
 const apiKey = "AIzaSyA2WhWi0ENAMjEGTAWtG3Bvso-1AyZA0K8";
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
+  model: "gemini-2.0-flash-lite-preview-02-05",
+  systemInstruction:
+    "You are a quest generator. You will be given a list of things the user must do and you will need to give a list of 10 quests for the user to do based off of the tasks.",
 });
-
-const generationConfig = {
-  temperature: 0.3,
-  topP: 0.95,
-  topK: 40,
-  maxOutputTokens: 1024,
-  responseMimeType: "text/plain",
+const jsonData = {
+  description: "A questboard.",
+  type: SchemaType.ARRAY,
+  items: {
+    type: SchemaType.OBJECT,
+    properties: {
+      quest: {
+        type: SchemaType.STRING,
+        description: "Quest3",
+        nullable: false,
+      },
+    },
+    required: ["quest"],
+  },
 };
 
 export default function Wrapper() {
@@ -33,12 +43,28 @@ export default function Wrapper() {
   const [response, setResponse] = useState("");
   async function run(message: String) {
     try {
-      const chatSession = model.startChat({
-        generationConfig,
-        history: [],
+      const chatSession = await model.generateContent({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: message,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.5,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 1024,
+          responseMimeType: "application/json",
+          responseSchema: jsonData,
+        },
       });
-      const result = await chatSession.sendMessage(message);
-      setResponse(result.response.text());
+      const response = chatSession.response.text();
+      setResponse(response);
     } catch (error) {
       console.log(error);
     }

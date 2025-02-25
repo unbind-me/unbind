@@ -10,13 +10,15 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 
+// This BottomBar is likely FINAL! No more changes needed
+
 const screenWidth = Dimensions.get("window").width;
-const screenW = screenWidth/4;
+const screenW = screenWidth / 3.3;
 const screenHeight = Dimensions.get("window").height;
 
 export default function BottomBar({ navigation }: any) {
   const buttonPositions = useRef<number[]>([]);
-  const position = useRef(new Animated.Value(-42)).current; // Default to 0 for now
+  const position = useRef(new Animated.Value(0)).current; // Default to 0 for now
   const pages = ["Home", "Block", "Settings"];
 
   const moveBox = (index: number) => {
@@ -47,7 +49,7 @@ export default function BottomBar({ navigation }: any) {
             }}
             onLayout={(event) => {
               const { x, width } = event.nativeEvent.layout;
-              buttonPositions.current[index] = x + 10; // Store the center of each button
+              buttonPositions.current[index] = x + 25; // Store the center of each button
             }}
             onPressIn={(ev) => {
               if (process.env.EXPO_OS === "ios") {
@@ -72,21 +74,21 @@ const styles = StyleSheet.create({
   BottomBar: {
     position: "absolute",
     bottom: 20,
-    left: 10,
-    right: 10,
-    height: screenHeight / 20,
+    left: 20,
+    right: 20,
+    height: screenHeight / 18,
     backgroundColor: "#191919",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    borderRadius: 25,
+    borderRadius: 30,
   },
   slider: {
     position: "absolute",
     width: screenW,
-    height: screenHeight / 20,
-    backgroundColor: "#0D0D0D",
-    borderRadius: 25,
+    height: screenHeight / 18,
+    backgroundColor: "rgba(71, 71, 71, 1)",
+    borderRadius: 30,
     zIndex: 10,
   },
   iconContainer: {

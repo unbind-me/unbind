@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#1F1F1F",
+    backgroundColor: "#272727",
     padding: 20,
   },
   title: {
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 15,
-    width: 250
+    width: 250,
   },
   logo: {
     width: 30,
