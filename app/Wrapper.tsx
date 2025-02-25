@@ -5,6 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+<<<<<<< HEAD
+=======
+  ScrollView,
+>>>>>>> 2e6c561cc46e4ab11285fb8b3588a22310294618
 } from "react-native";
 
 const {
@@ -20,10 +24,10 @@ const model = genAI.getGenerativeModel({
 });
 
 const generationConfig = {
-  temperature: 1,
+  temperature: 0.3,
   topP: 0.95,
   topK: 40,
-  maxOutputTokens: 8192,
+  maxOutputTokens: 1024,
   responseMimeType: "text/plain",
 };
 
@@ -44,23 +48,27 @@ export default function Wrapper() {
   }
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Ollama Prompt</Text>
+      <Text style={styles.title}>Gemini</Text>
       <TextInput
         style={styles.input}
         placeholder="Enter your prompt..."
+        placeholderTextColor={"#ccc"}
         value={input}
         onChangeText={setInput}
       />
       <TouchableOpacity onPress={() => run(input)} style={styles.button}>
-        <Text style={styles.buttonText}>Send to Ollama</Text>
+        <Text style={styles.buttonText}>Send to Gemini</Text>
       </TouchableOpacity>
       {response ? (
-        <View style={styles.responseBox}>
+        <ScrollView style={styles.responseBox}
+        contentContainerStyle={styles.responseContent}
+        showsVerticalScrollIndicator={false}
+        overScrollMode="always">
           <Text style={styles.responseText}>
             <Text style={{ fontWeight: "bold" }}>Response: </Text>
             {response}
           </Text>
-        </View>
+        </ScrollView>
       ) : null}
     </View>
   );
@@ -75,6 +83,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgb(22, 22, 22)",
     elevation: 3,
     marginTop: 20,
+    maxHeight: "80%",
   },
   title: {
     fontSize: 18,
@@ -110,9 +119,14 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#000",
     borderRadius: 5,
+    maxHeight: 350
   },
   responseText: {
     fontSize: 16,
     color: "#f8f9fa",
+  },
+  responseContent: {
+    padding: 10,
+    paddingBottom: 20, // Add extra padding at the bottom for overscroll
   },
 });

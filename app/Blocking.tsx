@@ -51,6 +51,7 @@ const Block = () => {
       <TextInput
         style={styles.searchInput}
         placeholder="Search for an app"
+        placeholderTextColor={"#ccc"}
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "black",
+    backgroundColor: "#1F1F1F",
     padding: 20,
   },
   title: {

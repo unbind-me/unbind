@@ -14,9 +14,12 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "softwareKeyboardLayoutMode": "pan",
+        "windowSoftInputMode": "adjustResize"
       },
       "package": "com.anonymous.unbinded"
+
     },
     "web": {
       "bundler": "metro",
