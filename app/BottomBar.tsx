@@ -10,7 +10,7 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 
-// This BottomBar is likely FINAL! No more changes needed
+// This BottomBar is likely NOT DONE
 
 const screenWidth = Dimensions.get("window").width;
 const screenW = screenWidth / 3.3;
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     height: screenHeight / 18,
-    backgroundColor: "#191919",
+    backgroundColor: "rgba(71, 71, 71, 0)",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: screenW,
     height: screenHeight / 18,
-    backgroundColor: "rgba(71, 71, 71, 1)",
+    backgroundColor: "#191919",
     borderRadius: 30,
     zIndex: 10,
   },
