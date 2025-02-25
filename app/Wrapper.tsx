@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  FlatView,
 } from "react-native";
 
 const {
