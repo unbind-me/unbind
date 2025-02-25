@@ -7,8 +7,11 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  Dimensions,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
+import Icon from "react-native-vector-icons/Ionicons"; // Import Icon component if you haven't already
+
+const { width, height } = Dimensions.get("window");
 
 const Block = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,40 +53,42 @@ const Block = () => {
       {/* Search Bar */}
       <TextInput
         style={styles.searchInput}
-        placeholder="Search for an app"
-        placeholderTextColor={"#ccc"}
+        placeholder=" Search for an app... "
+        placeholderTextColor={"#ffffff7b"}
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
 
-      {/* List of filtered apps */}
-      <FlatList
-        data={filteredApps}
-        renderItem={({ item }) => (
-          <View style={styles.appItemContainer}>
-            {/* App Logo */}
-            <Image source={item.logo} style={styles.logo} />
-            {/* App Name */}
-            <Text style={styles.appName}>{item.name}</Text>
-            {/* Toggle Selection */}
-            <TouchableOpacity
-              onPress={() => toggleSelection(item.name)}
-              hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}
-            >
-              <Icon
-                name={
-                  selectedApps[item.name]
-                    ? "checkmark-circle"
-                    : "checkmark-circle-outline"
-                }
-                size={24}
-                color="lightgray"
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-        keyExtractor={(item, index) => index.toString()}
-      />
+      {/* Container specifically for the list */}
+      <View style={styles.listContainer}>
+        <FlatList
+          data={filteredApps}
+          renderItem={({ item }) => (
+            <View style={styles.appItemContainer}>
+              {/* App Logo */}
+              <Image source={item.logo} style={styles.logo} />
+              {/* App Name */}
+              <Text style={styles.appName}>{item.name}</Text>
+              {/* Toggle Selection */}
+              <TouchableOpacity
+                onPress={() => toggleSelection(item.name)}
+                hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}
+              >
+                <Icon
+                  name={
+                    selectedApps[item.name]
+                      ? "checkmark-circle"
+                      : "add-circle-outline"
+                  }
+                  size={35}
+                  color="lightgray"
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
     </View>
   );
 };
@@ -92,9 +97,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     backgroundColor: "#272727",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 40,
   },
   title: {
     color: "white",
@@ -103,38 +109,48 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingLeft: 10,
+    borderWidth: 5,
+    borderRadius: 20,
+    borderBlockColor: "#0d0d0dcf",
+    borderColor: "#0d0d0dcf",
+    paddingLeft: 5,
     width: "100%",
     marginBottom: 20,
     color: "white",
+    backgroundColor: "#0d0d0dcf",
   },
   appItemContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 15,
-    width: 250,
+    width: "100%",
+    paddingHorizontal: 10,
+    justifyContent: "space-between",
+    marginTop: 10,
   },
   logo: {
-    width: 30,
-    height: 30,
-    marginRight: 10,
+    width: 60,
+    height: 60,
+    marginRight: 20,
   },
   appName: {
     color: "white",
     fontSize: 18,
     flex: 1,
   },
-  toggleText: {
-    color: "lightgray",
-    fontSize: 16,
-    textDecorationLine: "underline",
-  },
   blockButton: {
     marginBottom: 20,
   },
+  listContainer: {
+    flex: 0,
+    width: "100%",
+    maxHeight: height * 0.65,
+    backgroundColor: "#0d0d0dcf",
+    borderWidth: 5,
+    borderRadius: 20,
+    borderColor: "#0d0d0dcf",
+  },
 });
+
 
 export default Block;
