@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   searchInput: {
-    height: 40,
+    height: height / 20,
     borderWidth: 5,
     borderRadius: 20,
     borderBlockColor: "#0d0d0dcf",
@@ -151,6 +151,5 @@ const styles = StyleSheet.create({
     borderColor: "#0d0d0dcf",
   },
 });
-
 
 export default Block;

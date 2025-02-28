@@ -18,7 +18,7 @@ const screenHeight = Dimensions.get("window").height;
 
 export default function BottomBar({ navigation }: any) {
   const buttonPositions = useRef<number[]>([]);
-  const position = useRef(new Animated.Value(-screenW/2.5)).current; // Default to 0 for now
+  const position = useRef(new Animated.Value(-screenW / 2.5)).current; // Default to 0 for now
   const pages = ["Home", "Block", "Settings"];
 
   const moveBox = (index: number) => {
@@ -53,8 +53,7 @@ export default function BottomBar({ navigation }: any) {
             }}
             onPressIn={(ev) => {
               if (process.env.EXPO_OS === "ios") {
-                // Add a soft haptic feedback when pressing down on the tabs.
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               }
             }}
             hitSlop={{ top: 20, bottom: 20, left: 35, right: 35 }}
@@ -87,7 +86,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: screenW,
     height: screenHeight / 18,
-    backgroundColor: "#0D0D0D",
+    backgroundColor: "#383838",
     borderRadius: 30,
     zIndex: 10,
   },
