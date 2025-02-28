@@ -1,9 +1,9 @@
 import "../gesture-handler";
 import React from "react";
-import Home from "./home";
-import Settings from "./Settings";
-import BottomBar from "./BottomBar";
-import Block from "./Blocking";
+import Home from "./homeTabs/home";
+import Settings from "./homeTabs/Settings";
+import BottomBar from "./components/BottomBar";
+import Block from "./homeTabs/Blocking";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { DefaultTheme } from "@react-navigation/native";
