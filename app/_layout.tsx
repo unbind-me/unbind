@@ -12,6 +12,8 @@ import AppearanceSettings from "./screens/Appearance";
 import NotificationsSettings from "./screens/Notifications";
 import ProfileSettings from "./screens/Profile";
 import PrivacySettings from "./screens/Privacy";
+import { Platform, SafeAreaView, StyleSheet } from "react-native";
+import Constants from "expo-constants";
 
 const TabNavigator = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -26,18 +28,20 @@ const darkTheme = {
 
 function HomeTabs() {
   return (
-    <TabNavigator.Navigator
-      screenOptions={{
-        headerShown: false,
-        animation: "shift",
-      }}
-      initialRouteName="Home"
-      tabBar={(props) => <BottomBar {...props} />}
-    >
-      <TabNavigator.Screen name="Home" component={Home} />
-      <TabNavigator.Screen name="Block" component={Block} />
-      <TabNavigator.Screen name="Settings" component={Settings} />
-    </TabNavigator.Navigator>
+    <SafeAreaView style={styles.safeArea}>
+      <TabNavigator.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: "shift",
+        }}
+        initialRouteName="Home"
+        tabBar={(props) => <BottomBar {...props} />}
+      >
+        <TabNavigator.Screen name="Home" component={Home} />
+        <TabNavigator.Screen name="Block" component={Block} />
+        <TabNavigator.Screen name="Settings" component={Settings} />
+      </TabNavigator.Navigator>
+    </SafeAreaView>
   );
 }
 
@@ -64,3 +68,12 @@ const _layout = () => {
 };
 
 export default _layout;
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    // On Android, add padding for the status bar height
+    paddingTop: Platform.OS === "android" ? Constants.statusBarHeight : 0,
+    backgroundColor: "#272727",
+  },
+});

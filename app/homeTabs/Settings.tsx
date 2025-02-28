@@ -5,7 +5,6 @@ import {
   SectionList,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Platform,
 } from "react-native";
 import Constants from "expo-constants";
@@ -52,27 +51,20 @@ const SettingsList = ({ navigation }: { navigation: any }) => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.header}>Settings</Text>
-        <SectionList
-          sections={settingsData}
-          keyExtractor={(item, index) => item.screen + index}
-          renderItem={renderItem}
-          renderSectionHeader={renderSectionHeader}
-          contentContainerStyle={styles.listContent}
-        />
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Text style={styles.header}>Settings</Text>
+      <SectionList
+        sections={settingsData}
+        keyExtractor={(item, index) => item.screen + index}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        contentContainerStyle={styles.listContent}
+      />
+    </View>
   );
 };
 export default SettingsList;
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    paddingTop: Platform.OS === "android" ? Constants.statusBarHeight : 0,
-    backgroundColor: "#272727",
-  },
   container: {
     flex: 1,
     backgroundColor: "#272727",
