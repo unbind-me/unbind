@@ -7,8 +7,8 @@ import {
   SafeAreaView,
   Platform,
 } from "react-native";
-import PieChart from "./PieChart";
-import Wrapper from "./Wrapper";
+import PieChart from "../components/PieChart";
+import Wrapper from "../components/Wrapper";
 import Constants from "expo-constants";
 
 const Home = () => {

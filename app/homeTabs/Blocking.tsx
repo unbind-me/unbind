@@ -19,16 +19,16 @@ const Block = () => {
     {}
   );
   const [apps] = useState([
-    { name: "Facebook", logo: require("../assets/logos/facebook.png") },
-    { name: "Instagram", logo: require("../assets/logos/instagram.png") },
-    { name: "Twitter", logo: require("../assets/logos/twitter.png") },
-    { name: "Snapchat", logo: require("../assets/logos/snapchat.png") },
-    { name: "YouTube", logo: require("../assets/logos/youtube.png") },
-    { name: "WhatsApp", logo: require("../assets/logos/whatsapp.png") },
-    { name: "TikTok", logo: require("../assets/logos/tiktok.png") },
-    { name: "Reddit", logo: require("../assets/logos/reddit.png") },
-    { name: "Pinterest", logo: require("../assets/logos/pinterest.png") },
-    { name: "LinkedIn", logo: require("../assets/logos/linkedin.png") },
+    { name: "Facebook", logo: require("../../assets/logos/facebook.png") },
+    { name: "Instagram", logo: require("../../assets/logos/instagram.png") },
+    { name: "Twitter", logo: require("../../assets/logos/twitter.png") },
+    { name: "Snapchat", logo: require("../../assets/logos/snapchat.png") },
+    { name: "YouTube", logo: require("../../assets/logos/youtube.png") },
+    { name: "WhatsApp", logo: require("../../assets/logos/whatsapp.png") },
+    { name: "TikTok", logo: require("../../assets/logos/tiktok.png") },
+    { name: "Reddit", logo: require("../../assets/logos/reddit.png") },
+    { name: "Pinterest", logo: require("../../assets/logos/pinterest.png") },
+    { name: "LinkedIn", logo: require("../../assets/logos/linkedin.png") },
   ]);
 
   // Filter the apps based on the search query
