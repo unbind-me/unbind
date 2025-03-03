@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 0,
     width: "100%",
-    maxHeight: height * 0.5,
+    maxHeight: height * 0.55,
     backgroundColor: "#0d0d0dcf",
     borderWidth: 5,
     borderRadius: 20,

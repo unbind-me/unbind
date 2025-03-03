@@ -72,7 +72,7 @@ export default function BottomBar({ navigation }: any) {
 const styles = StyleSheet.create({
   BottomBar: {
     position: "absolute",
-    bottom: 20,
+    bottom: 10,
     left: 20,
     right: 20,
     height: screenHeight / 18,
