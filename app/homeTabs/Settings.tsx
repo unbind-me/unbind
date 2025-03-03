@@ -5,9 +5,7 @@ import {
   SectionList,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from "react-native";
-import Constants from "expo-constants";
 
 type SettingItem = {
   label: string;

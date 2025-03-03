@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
+import RNFS from "react-native-fs";
 
 const {
   GoogleGenerativeAI,

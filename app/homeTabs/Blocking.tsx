@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   appItemContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 5,
     width: "100%",
     paddingHorizontal: 10,
     justifyContent: "space-between",
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 0,
     width: "100%",
-    maxHeight: height * 0.55,
+    maxHeight: height * 0.7,
     backgroundColor: "#0d0d0dcf",
     borderWidth: 5,
     borderRadius: 20,

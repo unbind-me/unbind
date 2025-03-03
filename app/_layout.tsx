@@ -62,6 +62,7 @@ const _layout = () => {
           />
           <Stack.Screen name="ProfileSettings" component={ProfileSettings} />
           <Stack.Screen name="PrivacySettings" component={PrivacySettings} />
+          <Stack.Screen name="AppGroup" component={Block} />
         </Stack.Navigator>
         <StatusBar style="light" />
       </NavigationContainer>
