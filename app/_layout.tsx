@@ -62,6 +62,13 @@ const _layout = () => {
           />
           <Stack.Screen name="ProfileSettings" component={ProfileSettings} />
           <Stack.Screen name="PrivacySettings" component={PrivacySettings} />
+        </Stack.Navigator>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+            animation: "reveal_from_bottom",
+          }}
+        >
           <Stack.Screen name="AppGroup" component={Block} />
         </Stack.Navigator>
         <StatusBar style="light" />

@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import RNFS from "react-native-fs";
+import * as RNFS from "@dr.pogodin/react-native-fs";
 
 const {
   GoogleGenerativeAI,
@@ -42,6 +42,15 @@ const jsonData = {
 export default function Wrapper() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
+  // async function writeToFile() {
+  //   try {
+  //     const path = RNFS.DocumentDirectoryPath + "/response.json";
+  //     await RNFS.writeFile(path, response);
+  //     console.log("Success!");
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
   async function run(message: String) {
     try {
       const chatSession = await model.generateContent({
