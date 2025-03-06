@@ -14,12 +14,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-        "softwareKeyboardLayoutMode": "pan",
-        "windowSoftInputMode": "adjustResize"
+        "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.unbinded"
-
     },
     "web": {
       "bundler": "metro",
@@ -40,6 +37,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "120103fc-8469-47e0-80a5-9043eeb3f40d"
+      }
     }
   }
 }

@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import * as RNFS from "@dr.pogodin/react-native-fs";
+// import { MMKV } from "react-native-mmkv";
 
 const {
   GoogleGenerativeAI,
@@ -15,13 +15,13 @@ const {
   HarmBlockThreshold,
   SchemaType,
 } = require("@google/generative-ai");
-
-const apiKey = "AIzaSyA2WhWi0ENAMjEGTAWtG3Bvso-1AyZA0K8";
+// export const storage = new MMKV(); // Need to add auth
+const apiKey = "AIzaSyA2WhWi0ENAMjEGTAWtG3Bvso-1AyZA0K8"; // need to create API server
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({
   model: "gemini-2.0-flash-lite-preview-02-05",
   systemInstruction:
-    "You are a quest generator. You will be given a list of things the user must do and you will need to give a list of 10 quests for the user to do based off of the tasks.",
+    "You are a quest generator. You will be given a list of things the user must do and you will need to give a list of 10 quests for the user to do based off of the tasks. When naming the keys, make sure they are sequential, e.g quest1, quest2, etc.",
 });
 const jsonData = {
   description: "A questboard.",
@@ -42,15 +42,6 @@ const jsonData = {
 export default function Wrapper() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
-  // async function writeToFile() {
-  //   try {
-  //     const path = RNFS.DocumentDirectoryPath + "/response.json";
-  //     await RNFS.writeFile(path, response);
-  //     console.log("Success!");
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
   async function run(message: String) {
     try {
       const chatSession = await model.generateContent({
@@ -79,6 +70,18 @@ export default function Wrapper() {
       console.log(error);
     }
   }
+  // async function parseJSON() {
+  //   try {
+  //     const json = JSON.parse(response);
+  //     for (var key in json) {
+  //       storage.set(key, json[key]);
+  //     }
+  //     console.log("stored");
+  //   } catch (err) {
+  //     console.log("Is your JSON valid?");
+  //     console.log(err);
+  //   }
+  // }
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Gemini</Text>
@@ -92,6 +95,9 @@ export default function Wrapper() {
       <TouchableOpacity onPress={() => run(input)} style={styles.button}>
         <Text style={styles.buttonText}>Send to Gemini</Text>
       </TouchableOpacity>
+      {/* <TouchableOpacity onPress={() => parseJSON()} style={styles.button}>
+        <Text style={styles.buttonText}>Parse JSON File</Text>
+      </TouchableOpacity> */}
       {response ? (
         <ScrollView
           style={styles.responseBox}

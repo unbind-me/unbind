@@ -3,17 +3,13 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-native",
-    "lib": [
-      "DOM"
-    ],
+    "lib": ["DOM"],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-, "app/index.tsx.disabled"  ]
+  "include": ["**/*.ts", "**/*.tsx", "app/index.tsx.disabled"],
+  "android": {
+    "package": "com.anonymous.unbinded"
+  }
 }

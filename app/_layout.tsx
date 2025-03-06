@@ -45,35 +45,25 @@ function HomeTabs() {
 }
 
 const _layout = () => {
-  const { theme } = useContext(ThemeContext);
   return (
-    <NavigationIndependentTree>
-      <NavigationContainer theme={theme}>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* SettingsList is the main settings screen */}
-          <Stack.Screen name="HomeTabs" component={HomeTabs} />
-          <Stack.Screen
-            name="AppearanceSettings"
-            component={AppearanceSettings}
-          />
-          <Stack.Screen
-            name="NotificationSettings"
-            component={NotificationsSettings}
-          />
-          <Stack.Screen name="ProfileSettings" component={ProfileSettings} />
-          <Stack.Screen name="PrivacySettings" component={PrivacySettings} />
-        </Stack.Navigator>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-            animation: "reveal_from_bottom",
-          }}
-        >
-          <Stack.Screen name="AppGroup" component={Block} />
-        </Stack.Navigator>
-        <StatusBar style="light" />
-      </NavigationContainer>
-    </NavigationIndependentTree>
+    <>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {/* SettingsList is the main settings screen */}
+        <Stack.Screen name="HomeTabs" component={HomeTabs} />
+        <Stack.Screen
+          name="AppearanceSettings"
+          component={AppearanceSettings}
+        />
+        <Stack.Screen
+          name="NotificationSettings"
+          component={NotificationsSettings}
+        />
+        <Stack.Screen name="ProfileSettings" component={ProfileSettings} />
+        <Stack.Screen name="PrivacySettings" component={PrivacySettings} />
+        <Stack.Screen name="AppGroup" component={Block} />
+      </Stack.Navigator>
+      <StatusBar style="light" />
+    </>
   );
 };
 
