@@ -2,13 +2,13 @@
 import React, { useContext, useState } from "react";
 import { View, StyleSheet, Switch, Text } from "react-native";
 import { useTheme, useNavigation } from "@react-navigation/native";
-import { ThemeContext } from "../ThemeContext";
+// import { ThemeContext } from "../ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // WIP! Does not work.
 
 const AppearanceSettings = () => {
-  const { isDark, toggleTheme } = useContext(ThemeContext);
+  // const { isDark, toggleTheme } = useContext(ThemeContext);
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     container: { padding: 16, backgroundColor: colors.background },
@@ -32,7 +32,7 @@ const AppearanceSettings = () => {
         <Text style={styles.header}>Appearance Settings</Text>
         <View style={styles.row}>
           <Text style={styles.label}>Light Mode</Text>
-          <Switch value={isDark} onValueChange={toggleTheme} />
+          {/* <Switch value={isDark} onValueChange={toggleTheme} /> */}
         </View>
       </View>
     </SafeAreaView>

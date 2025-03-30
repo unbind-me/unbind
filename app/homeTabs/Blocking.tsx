@@ -9,7 +9,7 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons"; // Import Icon component if you haven't already
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const { width, height } = Dimensions.get("window");
 
@@ -19,16 +19,16 @@ const Block = () => {
     {}
   );
   const [apps] = useState([
-    { name: "Facebook", logo: require("../../assets/logos/facebook.png") },
-    { name: "Instagram", logo: require("../../assets/logos/instagram.png") },
-    { name: "Twitter", logo: require("../../assets/logos/twitter.png") },
-    { name: "Snapchat", logo: require("../../assets/logos/snapchat.png") },
-    { name: "YouTube", logo: require("../../assets/logos/youtube.png") },
-    { name: "WhatsApp", logo: require("../../assets/logos/whatsapp.png") },
-    { name: "TikTok", logo: require("../../assets/logos/tiktok.png") },
-    { name: "Reddit", logo: require("../../assets/logos/reddit.png") },
-    { name: "Pinterest", logo: require("../../assets/logos/pinterest.png") },
-    { name: "LinkedIn", logo: require("../../assets/logos/linkedin.png") },
+    { name: "Facebook" },
+    { name: "Instagram" },
+    { name: "Twitter" },
+    { name: "Snapchat" },
+    { name: "YouTube" },
+    { name: "WhatsApp" },
+    { name: "TikTok" },
+    { name: "Reddit" },
+    { name: "Pinterest" },
+    { name: "LinkedIn" },
   ]);
 
   // Filter the apps based on the search query
@@ -48,7 +48,7 @@ const Block = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Blocking</Text>
       <TouchableOpacity style={styles.blockButton}>
-        <Icon name="stop-circle-outline" size={50} color="lightgray" />
+        <Ionicons name="stop-circle-outline" size={50} color="lightgray" />
       </TouchableOpacity>
       {/* Search Bar */}
       <TextInput
@@ -66,7 +66,7 @@ const Block = () => {
           renderItem={({ item }) => (
             <View style={styles.appItemContainer}>
               {/* App Logo */}
-              <Image source={item.logo} style={styles.logo} />
+              {/* <Image source={item.logo} style={styles.logo} /> */}
               {/* App Name */}
               <Text style={styles.appName}>{item.name}</Text>
               {/* Toggle Selection */}
@@ -74,7 +74,7 @@ const Block = () => {
                 onPress={() => toggleSelection(item.name)}
                 hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}
               >
-                <Icon
+                <Ionicons
                   name={
                     selectedApps[item.name]
                       ? "checkmark-circle"

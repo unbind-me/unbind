@@ -7,7 +7,7 @@ import {
   Easing,
   Dimensions,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 
 // This BottomBar is likely NOT DONE
@@ -58,7 +58,16 @@ export default function BottomBar({ navigation }: any) {
             }}
             hitSlop={{ top: 20, bottom: 20, left: 35, right: 35 }}
           >
-            <Icon name={icon} size={24} color="lightgray" />
+            <Ionicons
+              name={
+                icon as
+                  | "home-outline"
+                  | "lock-closed-outline"
+                  | "settings-outline"
+              }
+              size={24}
+              color="lightgray"
+            />
           </TouchableOpacity>
         )
       )}
