@@ -1,3 +1,4 @@
+// app/components/UserList.tsx
 import React, { useState } from "react";
 import {
   TextInput,
@@ -6,34 +7,49 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Easing,
+  Alert,
 } from "react-native";
 import { useQuestList } from "./QuestListContext";
 import { run, responseStr } from "./Wrapper";
-import Collapsible from "react-native-collapsible";
 
-interface UserListProps {}
-
-const TodoListInput: React.FC<UserListProps> = () => {
+const TodoListInput: React.FC = () => {
   const [listItems, setListItems] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const { setQuestList } = useQuestList();
+  const [isLoading, setIsLoading] = useState(false);
 
   function parseJSON(response: string) {
     try {
       const json = JSON.parse(response); // Parse the response back into an object
       const newQuestList = [];
+      
+      // Validate that the response has the expected structure
+      if (!Array.isArray(json)) {
+        throw new Error("Response is not an array");
+      }
+      
       for (let i = 0; i < json.length; i++) {
+        if (!json[i].quest) {
+          throw new Error(`Quest item ${i} missing 'quest' property`);
+        }
         const questKey = `quest${i}`;
         const questValue = json[i].quest;
         newQuestList.push({ [questKey]: questValue });
       }
+      
       setQuestList(newQuestList);
       console.log("JSON Parsed!");
       console.log(newQuestList);
+      
+      // Clear the list items after successful submission
+      setListItems([]);
+      
+      return true;
     } catch (err) {
       console.log("Is your JSON valid?");
       console.log(err);
+      Alert.alert("Error", "Failed to parse the AI response. Please try again.");
+      return false;
     }
   }
 
@@ -49,53 +65,60 @@ const TodoListInput: React.FC<UserListProps> = () => {
 
   const handleSubmit = async () => {
     if (listItems.length === 0) {
-      console.log("LIST IS EMPTY!!");
+      Alert.alert("Error", "Please add at least one item to the list.");
       return;
     }
-    const concatenatedString = listItems.join(", ");
-    await run(concatenatedString);
-    parseJSON(responseStr);
+    
+    setIsLoading(true);
+    try {
+      const concatenatedString = listItems.join(", ");
+      await run(concatenatedString);
+      parseJSON(responseStr);
+    } catch (error) {
+      console.error("Error submitting to AI:", error);
+      Alert.alert("Error", "Failed to get quests from AI. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Collapsible
-      collapsed={false}
-      align={"top"}
-      easing={Easing.bezier(0.4, 0, 0.2, 1)}
-      collapsedHeight={20}
-    >
-      <View style={styles.card}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter a to-do item..."
-          placeholderTextColor={"#ccc"}
-          value={input}
-          onChangeText={setInput}
-        />
-        <TouchableOpacity onPress={handleAddItem} style={styles.button}>
-          <Text style={styles.buttonText}>Add Item</Text>
-        </TouchableOpacity>
-        <ScrollView style={{ height: 200, maxHeight: 200 }}>
-          {listItems.map((item, index) => (
-            <View key={index} style={styles.responseBox}>
-              <Text style={styles.responseText}>{item}</Text>
-              <TouchableOpacity
-                onPress={() => handleRemoveItem(index)}
-                style={styles.removeButton}
-              >
-                <Text style={styles.buttonText}>Remove Item</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
-        <TouchableOpacity
-          onPress={() => handleSubmit()}
-          style={styles.submitButton}
-        >
-          <Text style={styles.buttonText}>Submit to AI</Text>
-        </TouchableOpacity>
-      </View>
-    </Collapsible>
+    <View style={styles.card}>
+      <Text style={styles.title}>Create Your Quest List</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter a to-do item..."
+        placeholderTextColor="#ccc"
+        value={input}
+        onChangeText={setInput}
+        onSubmitEditing={handleAddItem}
+      />
+      <TouchableOpacity onPress={handleAddItem} style={styles.button}>
+        <Text style={styles.buttonText}>Add Item</Text>
+      </TouchableOpacity>
+      <ScrollView style={{ height: 200, maxHeight: 200 }}>
+        {listItems.map((item, index) => (
+          <View key={index} style={styles.responseBox}>
+            <Text style={styles.responseText}>{item}</Text>
+            <TouchableOpacity
+              onPress={() => handleRemoveItem(index)}
+              style={styles.removeButton}
+            >
+              <Text style={styles.buttonText}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </ScrollView>
+      <TouchableOpacity
+        onPress={handleSubmit}
+        style={[styles.submitButton, isLoading && styles.disabledButton]}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>
+          {isLoading ? "Generating Quests..." : "Submit to AI"}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -154,6 +177,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 5,
   },
+  disabledButton: {
+    backgroundColor: "#8abb8e",
+    opacity: 0.7,
+  },
   buttonText: {
     color: "#ffffff",
     fontSize: 16,
@@ -167,15 +194,18 @@ const styles = StyleSheet.create({
     maxHeight: 350,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   responseText: {
     fontSize: 16,
     color: "#f8f9fa",
     fontWeight: "bold",
     flexShrink: 1,
+    flex: 1,
+    marginRight: 10,
   },
   responseContent: {
     padding: 10,
-    paddingBottom: 20, // Add extra padding at the bottom for overscroll
+    paddingBottom: 20,
   },
 });
