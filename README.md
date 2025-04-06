@@ -31,7 +31,7 @@ Unbind is a mobile app designed with a gamified experience to help you be produc
 git clone https://github.com/unbind-me/unbind.git
 ```
 
-### Install Expo and run the project via terminal
+### Install Expo and run the project via VS code terminal
 
 ```bash
 cd <the folder you cloned to>
