@@ -714,8 +714,7 @@ const QuestCardDeck = () => {
       
       {/* Indicator pointing to the collapsible button at the top */}
       <View style={styles.pointerContainer}>
-        <Ionicons name="arrow-up" size={30} color="#fff" style={styles.pointerIcon} />
-        <Text style={styles.pointerText}>Tap the button on top to add items.</Text>
+        <Text style={styles.pointerText}>Tap the ▼ button on top to add items.</Text>
       </View>
     </View>
   );
@@ -1018,7 +1017,7 @@ const QuestCardDeck = () => {
           );
         }}
       >
-        <Text style={styles.debugButtonText}>⚙️</Text>
+        <Text style={styles.debugButtonText}>🔧</Text>
       </TouchableOpacity>
     </View>
   );
@@ -1128,7 +1127,7 @@ const styles = StyleSheet.create({
   },
   pointerContainer: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     padding: 15,
     borderRadius: 15,
     width: '100%',
@@ -1401,12 +1400,12 @@ const styles = StyleSheet.create({
   },
   debugButton: {
     position: 'absolute',
-    bottom: 60, // Move up above the bottom bar
-    right: 10,
+    bottom: 70, 
+    right: 20,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 9999,
