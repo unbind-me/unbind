@@ -75,15 +75,9 @@ const QuestCardDeck = () => {
           console.log('Loaded quests from storage:', parsedQuests);
           setQuestList(parsedQuests);
         } else {
-          // Add demo quests if storage is empty
-          const demoQuests: QuestItem[] = [
-            { quest: "Read a book for 20 minutes without distractions." },
-            { quest: "Go for a 15-minute walk without checking your phone." },
-            { quest: "Write down three things you're grateful for today." },
-            { quest: "Practice deep breathing for 5 minutes." }
-          ];
-          console.log('No quests found, adding demo quests:', demoQuests);
-          setQuestList(demoQuests as any);
+          // No demo quests - just set an empty list
+          console.log('No quests found in storage, starting with empty list');
+          setQuestList([]);
         }
         
         // Load progress
@@ -1004,18 +998,7 @@ const QuestCardDeck = () => {
                     setQuestProgress(new Map());
                     setCurrentIndex(0);
                     setSelectedQuest(null);
-                    
-                    // Add demo quests after a short delay
-                    setTimeout(() => {
-                      const demoQuests: QuestItem[] = [
-                        { quest: "Read a book for 20 minutes without distractions." },
-                        { quest: "Go for a 15-minute walk without checking your phone." },
-                        { quest: "Write down three things you're grateful for today." },
-                        { quest: "Practice deep breathing for 5 minutes." }
-                      ];
-                      setQuestList(demoQuests as any);
-                      setIsLoading(false);
-                    }, 1000);
+                    setIsLoading(false);
                   }, 500);
                 }
               },
