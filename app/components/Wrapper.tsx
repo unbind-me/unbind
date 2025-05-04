@@ -4,30 +4,38 @@ const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({
   model: "gemini-2.0-flash-lite-preview-02-05",
   systemInstruction:
-    "You are a quest generator. You will be given a list of things the user must do and you will need to give a list of 5 quests for the user to do based off of the tasks. When naming the keys, make sure they are sequential, e.g quest1, quest2, quest3, quest4, etc.",
+    "You are a quest generator. You will be given a list of things the user must do and you will need to give a list of quests for the user to do based off of the tasks. The number of quests should match the number of input tasks. When naming the keys, make sure they are sequential, e.g quest1, quest2, quest3, etc.",
 });
-const jsonData = {
-  description: "A questboard.",
-  type: SchemaType.ARRAY,
-  minItems: 5,
-  maxItems: 5,
-  items: {
-    type: SchemaType.OBJECT,
-    properties: {
-      quest: {
-        type: SchemaType.STRING,
-        description: "QuestGen",
-        nullable: false,
+
+// Dynamic schema based on input length
+export function createSchema(numTasks: number) {
+  return {
+    description: "A questboard.",
+    type: SchemaType.ARRAY,
+    minItems: numTasks,
+    maxItems: numTasks,
+    items: {
+      type: SchemaType.OBJECT,
+      properties: {
+        quest: {
+          type: SchemaType.STRING,
+          description: "QuestGen",
+          nullable: false,
+        },
       },
     },
-    // required: ["quest"],
-  },
-};
+  };
+}
+
 export var questList: { [key: string]: string }[] = [];
-export var responseStr = "";
+export var responseStr: string = "";
 
 export async function run(message: String) {
   try {
+    // Count the number of tasks by splitting the message by commas
+    const numTasks = message.split(",").length;
+    const jsonData = createSchema(numTasks);
+
     const chatSession = await model.generateContent({
       contents: [
         {

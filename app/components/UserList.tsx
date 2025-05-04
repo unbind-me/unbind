@@ -28,11 +28,16 @@ const TodoListInput: React.FC = () => {
         throw new Error("Response is not an array");
       }
       
+      // Validate that the number of quests matches the number of input tasks
+      if (json.length !== listItems.length) {
+        throw new Error(`Expected ${listItems.length} quests but got ${json.length}`);
+      }
+      
       for (let i = 0; i < json.length; i++) {
         if (!json[i].quest) {
           throw new Error(`Quest item ${i} missing 'quest' property`);
         }
-        const questKey = `quest${i}`;
+        const questKey = `quest${i + 1}`;
         const questValue = json[i].quest;
         newQuestList.push({ [questKey]: questValue });
       }
@@ -46,9 +51,11 @@ const TodoListInput: React.FC = () => {
       
       return true;
     } catch (err) {
-      console.log("Is your JSON valid?");
-      console.log(err);
-      Alert.alert("Error", "Failed to parse the AI response. Please try again.");
+      console.log("Error parsing JSON:", err);
+      Alert.alert(
+        "Error", 
+        err instanceof Error ? err.message : "Failed to parse the AI response. Please try again."
+      );
       return false;
     }
   }
