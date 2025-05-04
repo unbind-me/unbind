@@ -5,6 +5,8 @@ import {
   StyleSheet,
   Animated,
   PanResponder,
+  PanResponderGestureState,
+  GestureResponderEvent,
   Dimensions,
   TouchableOpacity,
   Platform,
@@ -17,6 +19,7 @@ import { useQuestList } from './QuestListContext';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { run, responseStr } from "./Wrapper";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -30,6 +33,20 @@ interface QuestItem {
   progress?: number;
 }
 
+// Helper to ensure type compatibility 
+const ensureQuestTypeCompatibility = (quest: QuestItem): any => {
+  // Force the type to match what the array expects
+  return quest;
+};
+
+// Storage keys
+const STORAGE_KEYS = {
+  QUESTS: 'unbind_quests',
+  QUEST_PROGRESS: 'unbind_quest_progress',
+  CURRENT_INDEX: 'unbind_current_index',
+  FOCUSED_QUEST: 'unbind_focused_quest'
+};
+
 const QuestCardDeck = () => {
   const { questList, setQuestList } = useQuestList();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -40,17 +57,171 @@ const QuestCardDeck = () => {
   const glowOpacity = useRef(new Animated.Value(0)).current;
   const [glowColor, setGlowColor] = useState('transparent');
   const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Map to track progress of each quest
   const [questProgress, setQuestProgress] = useState<Map<number, number>>(new Map());
 
+  // Load stored data on component mount
+  useEffect(() => {
+    const loadStoredData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Load quests
+        const storedQuests = await AsyncStorage.getItem(STORAGE_KEYS.QUESTS);
+        if (storedQuests) {
+          const parsedQuests = JSON.parse(storedQuests);
+          console.log('Loaded quests from storage:', parsedQuests);
+          setQuestList(parsedQuests);
+        } else {
+          // Add demo quests if storage is empty
+          const demoQuests: QuestItem[] = [
+            { quest: "Read a book for 20 minutes without distractions." },
+            { quest: "Go for a 15-minute walk without checking your phone." },
+            { quest: "Write down three things you're grateful for today." },
+            { quest: "Practice deep breathing for 5 minutes." }
+          ];
+          console.log('No quests found, adding demo quests:', demoQuests);
+          setQuestList(demoQuests as any);
+        }
+        
+        // Load progress
+        const storedProgress = await AsyncStorage.getItem(STORAGE_KEYS.QUEST_PROGRESS);
+        if (storedProgress) {
+          const parsedProgress = JSON.parse(storedProgress);
+          // Convert the array back to a Map with proper types
+          const progressMap = new Map<number, number>();
+          parsedProgress.forEach((entry: [string, number]) => {
+            progressMap.set(Number(entry[0]), entry[1]);
+          });
+          console.log('Loaded progress from storage:', parsedProgress);
+          setQuestProgress(progressMap);
+        }
+        
+        // Load current index
+        const storedIndex = await AsyncStorage.getItem(STORAGE_KEYS.CURRENT_INDEX);
+        if (storedIndex) {
+          const parsedIndex = JSON.parse(storedIndex);
+          console.log('Loaded current index from storage:', parsedIndex);
+          setCurrentIndex(parsedIndex);
+        }
+        
+        // Check if we have a focused quest
+        const focusedQuest = await AsyncStorage.getItem(STORAGE_KEYS.FOCUSED_QUEST);
+        if (focusedQuest) {
+          const parsedFocusedQuest = JSON.parse(focusedQuest);
+          console.log('Found focused quest in storage:', parsedFocusedQuest);
+          
+          // Ask user if they want to resume the focused quest
+          Alert.alert(
+            "Resume Focused Quest?",
+            "You were working on a quest. Would you like to continue?",
+            [
+              {
+                text: "No, Start Fresh",
+                onPress: () => {
+                  console.log('User chose to start fresh');
+                  AsyncStorage.removeItem(STORAGE_KEYS.FOCUSED_QUEST);
+                }
+              },
+              {
+                text: "Yes, Continue",
+                onPress: () => {
+                  console.log('Resuming focused quest');
+                  setSelectedQuest(parsedFocusedQuest);
+                }
+              }
+            ]
+          );
+        }
+      } catch (error) {
+        console.error('Error loading data from AsyncStorage:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadStoredData();
+  }, []);
+  
+  // Save quests to AsyncStorage whenever they change
+  useEffect(() => {
+    const saveQuests = async () => {
+      try {
+        console.log('Saving quests to storage:', questList);
+        await AsyncStorage.setItem(STORAGE_KEYS.QUESTS, JSON.stringify(questList));
+      } catch (error) {
+        console.error('Error saving quests to AsyncStorage:', error);
+      }
+    };
+    
+    if (!isLoading) {
+      saveQuests();
+    }
+  }, [questList, isLoading]);
+  
+  // Save current index to AsyncStorage
+  useEffect(() => {
+    const saveIndex = async () => {
+      try {
+        console.log('Saving current index to storage:', currentIndex);
+        await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_INDEX, JSON.stringify(currentIndex));
+      } catch (error) {
+        console.error('Error saving current index to AsyncStorage:', error);
+      }
+    };
+    
+    if (!isLoading) {
+      saveIndex();
+    }
+  }, [currentIndex, isLoading]);
+  
+  // Save progress to AsyncStorage
+  useEffect(() => {
+    const saveProgress = async () => {
+      try {
+        const progressArray = Array.from(questProgress.entries());
+        console.log('Saving progress to storage:', progressArray);
+        await AsyncStorage.setItem(STORAGE_KEYS.QUEST_PROGRESS, JSON.stringify(progressArray));
+      } catch (error) {
+        console.error('Error saving progress to AsyncStorage:', error);
+      }
+    };
+    
+    if (!isLoading) {
+      saveProgress();
+    }
+  }, [questProgress, isLoading]);
+
   // Function to update the progress of a quest
   const updateQuestProgress = (index: number, progress: number) => {
-    setQuestProgress(new Map(questProgress.set(index, progress)));
+    console.log(`Updating progress for quest ${index} to ${progress}%`);
+    // Create a new map to ensure re-render
+    const newProgress = new Map(questProgress);
+    newProgress.set(index, progress);
+    setQuestProgress(newProgress);
+    
+    // Provide haptic feedback when progress changes
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    
+    // Auto-mark as complete if 100%
+    if (progress === 100) {
+      if (Platform.OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    }
   };
 
   // Function to remove a quest (mark as complete)
   const completeQuest = (index: number) => {
+    if (index < 0 || index >= questList.length) {
+      console.error('Invalid index for completing quest:', index);
+      return;
+    }
+    
     const newList = [...questList];
     newList.splice(index, 1);
     setQuestList(newList);
@@ -60,9 +231,19 @@ const QuestCardDeck = () => {
     newProgress.delete(index);
     setQuestProgress(newProgress);
     
+    // Also clear the focused quest storage
+    AsyncStorage.removeItem(STORAGE_KEYS.FOCUSED_QUEST)
+      .then(() => console.log('Removed focused quest from storage after completion'))
+      .catch(error => console.error('Error removing focused quest from storage:', error));
+    
     // Close the modal if this was the selected quest
     if (selectedQuest && selectedQuest.index === index) {
       setSelectedQuest(null);
+    }
+    
+    // Give success haptic feedback
+    if (Platform.OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
 
@@ -87,251 +268,579 @@ const QuestCardDeck = () => {
     setShowActionText('');
   };
 
+  // Create a function to handle accepting quests (used by both button and swipe)
+  const handleAcceptQuest = (index: number) => {
+    console.log('Handling quest acceptance for index:', index);
+    
+    // Make sure the index is valid
+    if (index < 0 || index >= questList.length) {
+      console.error('Invalid index for accepting quest:', index);
+      return;
+    }
+    
+    // Get the quest and create a copy
+    const item = questList[index];
+    const questCopy = JSON.parse(JSON.stringify(item));
+    console.log('Accepting quest:', JSON.stringify(questCopy));
+    
+    // Save to AsyncStorage
+    AsyncStorage.setItem(STORAGE_KEYS.FOCUSED_QUEST, JSON.stringify({
+      quest: questCopy,
+      index: index
+    }));
+    
+    // Set the selected quest to open the modal
+    setSelectedQuest({
+      quest: questCopy,
+      index: index
+    });
+    
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  };
+
+  // Handler for declining quests (used by both button and swipe)
+  const handleDeclineQuest = (index: number) => {
+    console.log('Handling quest decline for index:', index);
+    
+    // Make sure the index is valid
+    if (index < 0 || index >= questList.length) {
+      console.error('Invalid index for declining quest:', index);
+      return;
+    }
+    
+    // Remove the current quest from the list
+    const updatedQuestList = [...questList];
+    updatedQuestList.splice(index, 1);
+    
+    // Adjust index if needed
+    let newIndex = index;
+    if (index >= updatedQuestList.length && index > 0) {
+      newIndex = updatedQuestList.length - 1;
+    } else if (updatedQuestList.length === 0) {
+      newIndex = 0;
+    }
+    
+    // Update the quest list and index
+    setQuestList(updatedQuestList);
+    setCurrentIndex(newIndex);
+    
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  // Handler for "Later" action (used by both button and swipe)
+  const handleLaterQuest = (index: number) => {
+    console.log('Handling quest for later, index:', index);
+    
+    // Make sure the index is valid
+    if (index < 0 || index >= questList.length) {
+      console.error('Invalid index for later quest:', index);
+      return;
+    }
+    
+    // Only reshuffle if there's more than one card
+    if (questList.length > 1) {
+      const currentQuest = questList[index];
+      const updatedQuestList = [...questList];
+      updatedQuestList.splice(index, 1);
+      
+      // Insert at random position (not the current position)
+      const randomIndex = Math.floor(Math.random() * updatedQuestList.length);
+      updatedQuestList.splice(randomIndex, 0, ensureQuestTypeCompatibility(currentQuest));
+      
+      // Update the quest list
+      setQuestList(updatedQuestList);
+    }
+    
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
   // Functions to animate swiping in different directions
   const swipeRight = () => {
+    console.log('Initiating swipe right animation');
     Animated.timing(position, {
       toValue: { x: SCREEN_WIDTH + 100, y: 0 },
       duration: SWIPE_OUT_DURATION,
       useNativeDriver: false,
-    }).start(() => onSwipeComplete('right'));
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    }).start(() => {
+      console.log('Swipe right animation complete');
+      // Call the same handler as the accept button
+      handleAcceptQuest(currentIndex);
+      
+      // Reset position
+      position.setValue({ x: 0, y: 0 });
+    });
   };
 
+  // Update the swipe functions to use the shared handlers
   const swipeLeft = () => {
+    console.log('Initiating swipe left animation');
     Animated.timing(position, {
       toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
       duration: SWIPE_OUT_DURATION,
       useNativeDriver: false,
-    }).start(() => onSwipeComplete('left'));
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    }).start(() => {
+      console.log('Swipe left animation complete');
+      // Call the same handler as the decline button
+      handleDeclineQuest(currentIndex);
+      
+      // Reset position
+      position.setValue({ x: 0, y: 0 });
+    });
   };
 
+  // Add the missing swipe up function for "later" action
   const swipeUp = () => {
+    console.log('Initiating swipe up animation');
     Animated.timing(position, {
       toValue: { x: 0, y: -SCREEN_HEIGHT - 100 },
       duration: SWIPE_OUT_DURATION,
       useNativeDriver: false,
-    }).start(() => onSwipeComplete('up'));
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    }).start(() => {
+      console.log('Swipe up animation complete');
+      // Call the same handler as the later button
+      handleLaterQuest(currentIndex);
+      
+      // Reset position
+      position.setValue({ x: 0, y: 0 });
+    });
   };
 
+  // Add the missing swipe down function for "regenerate" action
   const swipeDown = () => {
+    console.log('Initiating swipe down animation');
     Animated.timing(position, {
       toValue: { x: 0, y: SCREEN_HEIGHT + 100 },
       duration: SWIPE_OUT_DURATION,
       useNativeDriver: false,
-    }).start(() => onSwipeComplete('down'));
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    }).start(() => {
+      console.log('Swipe down animation complete');
+      // Call the regenerate function
+      regenerateCurrentQuest();
+      
+      // Reset position
+      position.setValue({ x: 0, y: 0 });
+    });
   };
 
-  // Handle what happens after a swipe is completed
-  const onSwipeComplete = async (direction: string) => {
-    // Safe check before continuing
-    console.log("onSwipeComplete - current index:", currentIndex, "questList length:", questList.length);
-    
-    // Only do a strict validation for index < 0, not for index >= questList.length
-    // since we'll handle that specific case properly in each direction handler
-    if (currentIndex < 0) {
-      console.error("Invalid currentIndex (negative):", currentIndex);
-      return;
+  // Update the button handlers in renderCard to use the shared functions
+  const renderCard = (item: QuestItem, index: number) => {
+    // Skip invalid indices
+    if (index < 0 || index >= questList.length) {
+      console.log(`Skipping invalid card at index ${index}`);
+      return null;
     }
-
-    // Make sure we have a valid quest
-    if (!questList[currentIndex]) {
-      console.error("No quest found at index:", currentIndex);
-      return;
-    }
-
-    const currentQuest = questList[currentIndex];
-    let updatedQuestList = [...questList];
-    let newIndex = currentIndex;
     
-    // Process based on swipe direction
-    if (direction === 'right') {
-      console.log('Accepting Quest:', currentQuest);
-      // Open the full screen quest view
-      setSelectedQuest({quest: currentQuest, index: currentIndex});
-    } else if (direction === 'left') {
-      console.log('Quest declined:', currentQuest);
-      updatedQuestList.splice(currentIndex, 1);
-      setQuestList(updatedQuestList);
-      
-      // Don't increment index when removing items, as the next item will now be at the current index
-      // Only adjust index if we've removed the last item and need to go back
-      if (currentIndex >= updatedQuestList.length && currentIndex > 0) {
-        newIndex = updatedQuestList.length - 1;
-      } else if (updatedQuestList.length === 0) {
-        // Handle case where we've removed the last quest
-        newIndex = 0;
-      }
-    } else if (direction === 'up') {
-      console.log('Quest for later:', currentQuest);
-      
-      // Special handling for when there's only one card
-      if (questList.length > 1) {
-        // Move current quest to the end of the list
-        updatedQuestList.splice(currentIndex, 1);
-        updatedQuestList.push(currentQuest);
-        setQuestList(updatedQuestList);
-        
-        // Stay at current index unless it's now out of bounds
-        if (currentIndex >= updatedQuestList.length) {
-          newIndex = 0;
-        }
-      } else {
-        // If there's only one card, just keep it where it is
-        console.log('Only one card in deck, keeping it in place');
-        
-        // Force a re-render by creating a new reference
-        setQuestList([...questList]);
-      }
-    } else if (direction === 'down') {
-      console.log('Quest to regenerate:', currentQuest);
-      try {
-        setIsRegenerating(true);
-        const questKey = Object.keys(currentQuest)[0];
-        const questValue = Object.values(currentQuest)[0] || '';
-        const similarQuestPrompt = `Please create a similar alternative to this quest: "${questValue}". Make it different enough to be interesting but with the same general goal or theme. Respond with only the new quest text.`;
-        
-        console.log('Sending regeneration prompt:', similarQuestPrompt);
-        
-        // Call AI to regenerate
-        await run(similarQuestPrompt);
-        
-        console.log('Got response from AI:', responseStr);
-        
-        // Process the response to get the new quest text
-        if (responseStr && responseStr.trim()) {
-          try {
-            let newQuestText;
-            
-            // Try to parse JSON first
-            try {
-              const responseJson = JSON.parse(responseStr);
-              if (Array.isArray(responseJson) && responseJson.length > 0 && responseJson[0].quest) {
-                newQuestText = responseJson[0].quest;
-                console.log('Successfully parsed JSON response for regenerated quest:', newQuestText);
-              } else {
-                // If JSON parsed but didn't have the expected structure, use the raw text
-                newQuestText = responseStr.trim();
-                console.log('Parsed JSON but using raw text for regenerated quest:', newQuestText);
+    // Special case for regenerating cards
+    if (isRegenerating && index === currentIndex) {
+      console.log(`Showing loading card for regeneration at index ${index}`);
+      return (
+        <View style={styles.cardContainer} key={`loading-${index}`}>
+          <View style={[styles.card, styles.loadingCard]}>
+            <Text style={styles.questTitle}>Regenerating Quest...</Text>
+            <ActivityIndicator size="large" color="#fff" style={styles.loader} />
+            <Text style={styles.loadingText}>AI is creating a similar quest</Text>
+          </View>
+        </View>
+      );
+    }
+    
+    console.log(`Rendering card at index ${index}: ${JSON.stringify(item)}`);
+    return (
+      <View
+        key={`card-${index}`}
+        style={styles.cardContainer}
+      >
+        <Animated.View 
+          style={[
+            styles.card,
+            getCardStyle(),
+            isDragging && styles.draggingCard
+          ]}
+          {...panResponder.panHandlers}
+        >
+          {/* Multi-layered glow effect for swiping */}
+          <Animated.View 
+            style={[
+              styles.cardGlowOuter,
+              { 
+                backgroundColor: glowColor,
+                opacity: Animated.multiply(glowOpacity, 0.4),
               }
-            } catch (parseError) {
-              // If response is not JSON, just use it directly as text
-              newQuestText = responseStr.trim();
-              console.log('Using raw text for regenerated quest:', newQuestText);
-            }
+            ]} 
+          />
+          <Animated.View 
+            style={[
+              styles.cardGlow,
+              { 
+                backgroundColor: glowColor,
+                opacity: glowOpacity,
+                shadowColor: glowColor,
+                shadowRadius: Animated.multiply(glowOpacity, 30),
+                elevation: Animated.multiply(glowOpacity, 35)
+              }
+            ]} 
+          />
+          
+          {/* Card content */}
+          <Text style={styles.questTitle}>Quest {index + 1}</Text>
+          <Text style={styles.questDescription}>
+            {getQuestDescription(item)}
+          </Text>
+          
+          {/* All buttons stacked vertically in the specified order */}
+          <View style={styles.allButtonsContainer}>
+            <TouchableOpacity 
+              style={[styles.buttonEqual, styles.acceptButton]}
+              onPress={() => {
+                console.log('Accept button pressed for index', index);
+                handleAcceptQuest(index);
+              }}
+            >
+              <Ionicons name="checkmark-outline" size={24} color="#00FF47" />
+              <Text style={styles.buttonText}>Accept</Text>
+            </TouchableOpacity>
             
-            // Update the current quest with the new text
-            const updatedQuest = { [questKey]: newQuestText };
-            console.log('Updating quest at index', currentIndex, 'with:', updatedQuest);
+            <TouchableOpacity 
+              style={[styles.buttonEqual, styles.declineButton]}
+              onPress={() => {
+                console.log('Decline button pressed for index', index);
+                handleDeclineQuest(index);
+              }}
+            >
+              <Ionicons name="close-outline" size={24} color="#FF0D3D" />
+              <Text style={styles.buttonText}>Decline</Text>
+            </TouchableOpacity>
             
-            updatedQuestList[currentIndex] = updatedQuest;
-            console.log('New quest list after regeneration:', updatedQuestList);
+            <TouchableOpacity 
+              style={[styles.buttonEqual, styles.laterButton]}
+              onPress={() => {
+                console.log('Later button pressed for index', index);
+                handleLaterQuest(index);
+              }}
+            >
+              <Ionicons name="time-outline" size={24} color="#00DDFF" />
+              <Text style={styles.buttonText}>Later</Text>
+            </TouchableOpacity>
             
-            setQuestList([...updatedQuestList]); // Use spread to ensure a new array reference
-          } catch (error) {
-            console.error('Error processing regenerated quest:', error);
-            Alert.alert('Regeneration Error', 'Failed to process the regenerated quest. Please try again.');
-          }
-        } else {
-          console.error('Empty response from AI');
-          Alert.alert('Regeneration Error', 'Received an empty response. Please try again.');
-        }
-        
-        setIsRegenerating(false);
-      } catch (error) {
-        console.error('Error regenerating quest:', error);
-        setIsRegenerating(false);
-        Alert.alert('Regeneration Error', 'Failed to regenerate quest. Please try again.');
-      }
-    }
-    
-    // Set the new index
-    console.log("Setting new index to:", newIndex);
-    setCurrentIndex(newIndex);
-    
-    // Reset position
-    position.setValue({ x: 0, y: 0 });
+            <TouchableOpacity 
+              style={[styles.buttonEqual, styles.refreshButton]}
+              onPress={() => {
+                console.log('Regenerate button pressed for index', index);
+                regenerateCurrentQuest();
+              }}
+            >
+              <Ionicons name="refresh-outline" size={24} color="#FFFC00" />
+              <Text style={styles.buttonText}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {/* Hint text for swipe gestures */}
+          <Text style={styles.swipeHint}>
+            You can also swipe to interact with this quest
+          </Text>
+        </Animated.View>
+      </View>
+    );
   };
 
-  // Function to regenerate a quest
-  const regenerateQuest = async (index: number) => {
-    if (isRegenerating) return;
+  const [modalVisible, setModalVisible] = useState(false);
+  const modalY = useRef(new Animated.Value(0)).current;
+  
+  // Add a panResponder for the modal
+  const modalPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (event, gesture) => {
+        // Only allow downward dragging
+        if (gesture.dy > 0) {
+          modalY.setValue(gesture.dy);
+        }
+      },
+      onPanResponderRelease: (event, gesture) => {
+        if (gesture.dy > SCREEN_HEIGHT * 0.2) {
+          // Dismiss the modal if dragged down more than 20% of screen height
+          Animated.timing(modalY, {
+            toValue: SCREEN_HEIGHT,
+            duration: 300,
+            useNativeDriver: false,
+          }).start(() => {
+            setSelectedQuest(null);
+            modalY.setValue(0);
+          });
+        } else {
+          // Snap back to original position
+          Animated.spring(modalY, {
+            toValue: 0,
+            useNativeDriver: false,
+            friction: 8,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  // Render the full-screen quest view as a modal
+  const renderQuestModal = () => {
+    if (!selectedQuest) {
+      console.log('No selected quest, not showing modal');
+      return null;
+    }
+    
+    const { quest, index } = selectedQuest;
+    console.log('Rendering modal for quest:', JSON.stringify(quest), 'at index', index);
+    
+    const progress = questProgress.get(index) || 0;
+    const isComplete = progress === 100;
+    
+    // Make sure we have a valid quest description to display
+    const questDescription = getQuestDescription(quest);
+    console.log('Quest description for modal:', questDescription);
+    
+    return (
+      <Modal
+        visible={true}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => {
+          console.log('Modal close requested');
+          setSelectedQuest(null);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => {
+                console.log('Close button pressed');
+                setSelectedQuest(null);
+              }}
+            >
+              <Ionicons name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Current Quest</Text>
+            <View style={{width: 40}} />
+          </View>
+          
+          <View style={styles.modalContent}>
+            <View style={[
+              styles.questCardLarge, 
+              isComplete && styles.completedCard
+            ]}>
+              <Text style={styles.questDescriptionLarge}>
+                {questDescription}
+              </Text>
+            </View>
+            
+            {/* Progress buttons */}
+            <View style={styles.progressContainer}>
+              <Text style={styles.progressText}>Progress: {progress}%</Text>
+              <View style={styles.progressButtons}>
+                {[25, 50, 75, 100].map((progressValue) => (
+                  <TouchableOpacity
+                    key={`progress-${progressValue}`}
+                    style={[
+                      styles.progressButton,
+                      progress >= progressValue && styles.progressButtonActive
+                    ]}
+                    onPress={() => updateQuestProgress(index, progressValue)}
+                  >
+                    <Text style={styles.progressButtonText}>{progressValue}%</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            
+            <View style={styles.modalButtons}>
+              {/* Complete button (only shown when progress is 100%) */}
+              {progress === 100 && (
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.completeButton]}
+                  onPress={() => {
+                    console.log('Complete button pressed');
+                    completeQuest(index);
+                  }}
+                >
+                  <Ionicons name="checkmark-circle-outline" size={24} color="#3dad35" />
+                  <Text style={styles.modalButtonText}>Mark Complete</Text>
+                </TouchableOpacity>
+              )}
+              
+              {/* Later button (always visible) */}
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalLaterButton]}
+                onPress={() => {
+                  console.log('Later button pressed in modal');
+                  // Move quest back to deck randomly
+                  if (index >= 0 && index < questList.length) {
+                    const updatedQuestList = [...questList];
+                    updatedQuestList.splice(index, 1);
+                    
+                    // Make sure we have a valid list to insert into
+                    if (updatedQuestList.length > 0) {
+                      const randomIndex = Math.floor(Math.random() * updatedQuestList.length);
+                      // Type-safe insertion
+                      updatedQuestList.splice(randomIndex, 0, ensureQuestTypeCompatibility(quest));
+                    } else {
+                      // If the list is empty after removing, just add it back
+                      updatedQuestList.push(ensureQuestTypeCompatibility(quest));
+                    }
+                    
+                    setQuestList(updatedQuestList);
+                    
+                    // Clear the focused quest from storage
+                    AsyncStorage.removeItem(STORAGE_KEYS.FOCUSED_QUEST);
+                  } else {
+                    console.error("Invalid index when trying to reshuffle:", index);
+                  }
+                  
+                  setSelectedQuest(null);
+                }}
+              >
+                <Ionicons name="time-outline" size={24} color="#00DDFF" />
+                <Text style={styles.modalButtonText}>Do Later</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  // Render a message when there are no quests
+  const renderNoMoreCards = () => (
+    <View style={styles.noMoreCardsContainer}>
+      <Text style={styles.noMoreCardsText}>Your quest list is empty</Text>
+      <Text style={styles.noMoreCardsSubText}>Add items to your list and we'll generate quests for you</Text>
+      
+      {/* Indicator pointing to the collapsible button at the top */}
+      <View style={styles.pointerContainer}>
+        <Ionicons name="arrow-up" size={30} color="#fff" style={styles.pointerIcon} />
+        <Text style={styles.pointerText}>Tap the button on top to add items.</Text>
+      </View>
+    </View>
+  );
+
+  // Make sure currentIndex is valid whenever questList changes
+  useEffect(() => {
+    console.log("questList changed, length:", questList.length, "currentIndex:", currentIndex);
+    
+    if (questList.length === 0) {
+      console.log("Setting currentIndex to 0 (empty list)");
+      setCurrentIndex(0);
+      // If list is empty, close the modal if open
+      if (selectedQuest) {
+        console.log("Closing quest modal because list is now empty");
+        setSelectedQuest(null);
+      }
+    } else if (currentIndex >= questList.length) {
+      console.log(`currentIndex (${currentIndex}) is out of bounds, adjusting to ${questList.length - 1}`);
+      setCurrentIndex(questList.length - 1);
+    } else {
+      console.log(`currentIndex (${currentIndex}) is valid for questList length ${questList.length}`);
+    }
+  }, [questList]);
+
+  // Add an effect to console.log when selectedQuest changes
+  useEffect(() => {
+    if (selectedQuest) {
+      console.log("Selected quest changed:", JSON.stringify(selectedQuest.quest), "at index", selectedQuest.index);
+    } else {
+      console.log("Selected quest cleared");
+    }
+  }, [selectedQuest]);
+
+  // Add debug logging for quests and progress
+  useEffect(() => {
+    console.log("Quest progress map updated:", Array.from(questProgress.entries()));
+  }, [questProgress]);
+
+  // Check if there are any quests to display - simplified logic
+  const hasQuests = questList.length > 0;
+  console.log("Rendering quest deck, hasQuests:", hasQuests, "questList:", JSON.stringify(questList));
+
+  // Render loading state
+  const renderLoading = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#fff" />
+      <Text style={styles.loadingText}>Loading your quests...</Text>
+    </View>
+  );
+
+  // Add a function to clear storage (useful for debugging)
+  const clearStorage = async () => {
+    try {
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.QUESTS,
+        STORAGE_KEYS.QUEST_PROGRESS,
+        STORAGE_KEYS.CURRENT_INDEX
+      ]);
+      console.log('Storage cleared');
+      Alert.alert('Storage Cleared', 'All quests and progress have been reset.');
+      // Reload the app or reset state
+      setQuestList([]);
+      setQuestProgress(new Map());
+      setCurrentIndex(0);
+    } catch (error) {
+      console.error('Error clearing storage:', error);
+    }
+  };
+
+  // Add a separate function for regenerating quests to simplify the main swipe handler
+  const regenerateCurrentQuest = async () => {
+    if (currentIndex < 0 || currentIndex >= questList.length) {
+      console.error("Invalid current index for regeneration");
+      return;
+    }
+    
+    const currentQuest = questList[currentIndex];
+    console.log('Quest to regenerate:', currentQuest);
     
     try {
       setIsRegenerating(true);
-      const currentQuest = questList[index];
       const questKey = Object.keys(currentQuest)[0];
       const questValue = Object.values(currentQuest)[0] || '';
       const similarQuestPrompt = `Please create a similar alternative to this quest: "${questValue}". Make it different enough to be interesting but with the same general goal or theme. Respond with only the new quest text.`;
       
-      console.log('Sending regeneration prompt from modal:', similarQuestPrompt);
+      console.log('Sending regeneration prompt:', similarQuestPrompt);
       
       // Call AI to regenerate
       await run(similarQuestPrompt);
       
-      console.log('Got response from AI in modal:', responseStr);
+      console.log('Got response from AI:', responseStr);
       
       // Process the response to get the new quest text
-      let updatedQuestList = [...questList];
-      
       if (responseStr && responseStr.trim()) {
         try {
-          let newQuestText;
-          
-          // Try to parse JSON first
-          try {
-            const responseJson = JSON.parse(responseStr);
-            if (Array.isArray(responseJson) && responseJson.length > 0 && responseJson[0].quest) {
-              newQuestText = responseJson[0].quest;
-              console.log('Successfully parsed JSON response for regenerated quest in modal:', newQuestText);
-            } else {
-              // If JSON parsed but didn't have the expected structure, use the raw text
-              newQuestText = responseStr.trim();
-              console.log('Parsed JSON but using raw text for regenerated quest in modal:', newQuestText);
-            }
-          } catch (parseError) {
-            // If response is not JSON, just use it directly as text
-            newQuestText = responseStr.trim();
-            console.log('Using raw text for regenerated quest in modal:', newQuestText);
-          }
+          // Use the raw text directly for simplicity
+          const newQuestText = responseStr.trim();
           
           // Update the current quest with the new text
           const updatedQuest = { [questKey]: newQuestText };
-          console.log('Updating quest at index', index, 'with:', updatedQuest);
+          console.log('Updating quest at index', currentIndex, 'with:', updatedQuest);
           
-          updatedQuestList[index] = updatedQuest;
-          console.log('New quest list after regeneration from modal:', updatedQuestList);
-          
-          setQuestList([...updatedQuestList]); // Use spread to ensure a new array reference
+          // Update the quest list
+          const updatedQuestList = [...questList];
+          updatedQuestList[currentIndex] = updatedQuest;
+          setQuestList(updatedQuestList);
         } catch (error) {
-          console.error('Error processing regenerated quest from modal:', error);
+          console.error('Error processing regenerated quest:', error);
           Alert.alert('Regeneration Error', 'Failed to process the regenerated quest. Please try again.');
         }
       } else {
-        console.error('Empty response from AI in modal');
+        console.error('Empty response from AI');
         Alert.alert('Regeneration Error', 'Received an empty response. Please try again.');
       }
-      
-      setIsRegenerating(false);
-      
-      // Close the modal if this was the selected quest
-      if (selectedQuest && selectedQuest.index === index) {
-        setSelectedQuest(null);
-      }
     } catch (error) {
-      console.error('Error regenerating quest from modal:', error);
-      setIsRegenerating(false);
+      console.error('Error regenerating quest:', error);
       Alert.alert('Regeneration Error', 'Failed to regenerate quest. Please try again.');
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -368,7 +877,7 @@ const QuestCardDeck = () => {
     }
   };
 
-  // Set up the PanResponder for swipe gestures
+  // Set up the PanResponder with proper type definitions
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -377,7 +886,7 @@ const QuestCardDeck = () => {
         console.log("Pan responder grant - starting drag");
         setIsDragging(true);
       },
-      onPanResponderMove: (event, gesture) => {
+      onPanResponderMove: (event: GestureResponderEvent, gesture: PanResponderGestureState) => {
         console.log(`Pan responder move: dx=${gesture.dx}, dy=${gesture.dy}`);
         position.setValue({ x: gesture.dx, y: gesture.dy });
         
@@ -398,7 +907,7 @@ const QuestCardDeck = () => {
           animateGlow(false);
         }
       },
-      onPanResponderRelease: (event, gesture) => {
+      onPanResponderRelease: (event: GestureResponderEvent, gesture: PanResponderGestureState) => {
         console.log("Pan responder release - ending drag");
         setIsDragging(false);
         if (gesture.dx > SWIPE_THRESHOLD) {
@@ -446,303 +955,18 @@ const QuestCardDeck = () => {
     };
   };
 
-  // Render progress buttons for a quest
-  const renderProgressButtons = (index: number) => {
-    const progressOptions = [25, 50, 75, 100];
-    const currentProgress = questProgress.get(index) || 0;
-    
-    return (
-      <View style={styles.progressContainer}>
-        <Text style={styles.progressText}>Progress: {currentProgress}%</Text>
-        <View style={styles.progressButtons}>
-          {progressOptions.map((progress) => (
-            <TouchableOpacity
-              key={`progress-${progress}`}
-              style={[
-                styles.progressButton,
-                currentProgress >= progress && styles.progressButtonActive
-              ]}
-              onPress={() => updateQuestProgress(index, progress)}
-            >
-              <Text style={styles.progressButtonText}>{progress}%</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    );
+  // Render current card and background cards
+  const renderCards = () => {
+    if (!hasQuests) {
+      return renderNoMoreCards();
+    }
+
+    // Only render the current card
+    if (currentIndex >= 0 && currentIndex < questList.length) {
+      return renderCard(questList[currentIndex], currentIndex);
+    }
+    return null;
   };
-
-  // Render a single quest card
-  const renderCard = (item: QuestItem, index: number) => {
-    // Skip invalid indices
-    if (index < 0 || index >= questList.length) {
-      console.log(`Skipping invalid card at index ${index}`);
-      return null;
-    }
-    
-    // Special case for regenerating cards
-    if (isRegenerating && index === currentIndex) {
-      console.log(`Showing loading card for regeneration at index ${index}`);
-      return (
-        <View style={styles.cardContainer} key={`loading-${index}`}>
-          <View style={[styles.card, styles.loadingCard]}>
-            <Text style={styles.questTitle}>Regenerating Quest...</Text>
-            <ActivityIndicator size="large" color="#fff" style={styles.loader} />
-            <Text style={styles.loadingText}>AI is creating a similar quest</Text>
-          </View>
-        </View>
-      );
-    }
-    
-    // Calculate how far this card is from the current index
-    const cardOffset = index - currentIndex;
-    
-    // Calculate offset for stacked appearance
-    const yOffset = cardOffset * 15; // More noticeable offset
-    const zIndex = 999 - cardOffset; // Give higher cards higher z-index
-    const scale = 1 - (cardOffset * 0.07); // Scale down background cards more
-    
-    if (index === currentIndex) {
-      console.log(`Rendering current card at index ${index}: ${JSON.stringify(item)}`);
-      return (
-        <Animated.View
-          key={`card-${index}`}
-          style={[
-            styles.cardContainer, 
-            getCardStyle(),
-            { zIndex: 1000 }, // Current card always on top
-            isDragging && styles.draggingCard
-          ]}
-          {...panResponder.panHandlers}
-        >
-          {/* Multi-layered glow effect for more dramatic neon appearance */}
-          <Animated.View 
-            style={[
-              styles.cardGlowOuter,
-              { 
-                backgroundColor: glowColor,
-                opacity: Animated.multiply(glowOpacity, 0.4),
-              }
-            ]} 
-          />
-          <Animated.View 
-            style={[
-              styles.cardGlow,
-              { 
-                backgroundColor: glowColor,
-                opacity: glowOpacity,
-                shadowColor: glowColor,
-                shadowRadius: Animated.multiply(glowOpacity, 30),
-                elevation: Animated.multiply(glowOpacity, 35)
-              }
-            ]} 
-          />
-          
-          <View style={styles.card}>
-            <Text style={styles.questTitle}>Quest {index + 1}</Text>
-            <Text style={styles.questDescription}>
-              {getQuestDescription(item)}
-            </Text>
-            
-            <View style={styles.swipeInstructions}>
-              <View style={styles.swipeInstructionItem}>
-                <Ionicons name="arrow-back" size={16} color="rgba(255, 255, 255, 0.5)" />
-                <Text style={styles.swipeText}>Decline</Text>
-              </View>
-              <View style={styles.swipeInstructionItem}>
-                <Ionicons name="arrow-up" size={16} color="rgba(255, 255, 255, 0.5)" />
-                <Text style={styles.swipeText}>Later</Text>
-              </View>
-              <View style={styles.swipeInstructionItem}>
-                <Ionicons name="arrow-down" size={16} color="rgba(255, 255, 255, 0.5)" />
-                <Text style={styles.swipeText}>Refresh</Text>
-              </View>
-              <View style={styles.swipeInstructionItem}>
-                <Ionicons name="arrow-forward" size={16} color="rgba(255, 255, 255, 0.5)" />
-                <Text style={styles.swipeText}>Accept</Text>
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-      );
-    } else {
-      // Background cards
-      console.log(`Rendering background card at index ${index}`);
-      return (
-        <View
-          key={`card-${index}`}
-          style={[
-            styles.cardContainer,
-            {
-              zIndex,
-              transform: [
-                { translateY: yOffset },
-                { scale }
-              ]
-            }
-          ]}
-        >
-          <View style={[styles.card, styles.backgroundCard]}>
-            <Text style={styles.questTitle}>Quest {index + 1}</Text>
-            <Text style={[styles.questDescription, styles.backgroundText]}>
-              {getQuestDescription(item)}
-            </Text>
-          </View>
-        </View>
-      );
-    }
-  };
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const modalY = useRef(new Animated.Value(0)).current;
-  
-  // Add a panResponder for the modal
-  const modalPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (event, gesture) => {
-        // Only allow downward dragging
-        if (gesture.dy > 0) {
-          modalY.setValue(gesture.dy);
-        }
-      },
-      onPanResponderRelease: (event, gesture) => {
-        if (gesture.dy > SCREEN_HEIGHT * 0.2) {
-          // Dismiss the modal if dragged down more than 20% of screen height
-          Animated.timing(modalY, {
-            toValue: SCREEN_HEIGHT,
-            duration: 300,
-            useNativeDriver: false,
-          }).start(() => {
-            setSelectedQuest(null);
-            modalY.setValue(0);
-          });
-        } else {
-          // Snap back to original position
-          Animated.spring(modalY, {
-            toValue: 0,
-            useNativeDriver: false,
-            friction: 8,
-          }).start();
-        }
-      },
-    })
-  ).current;
-
-  // Render the full-screen quest view as a modal
-  const renderQuestModal = () => {
-    if (!selectedQuest) return null;
-    
-    const { quest, index } = selectedQuest;
-    const progress = questProgress.get(index) || 0;
-    const isComplete = progress === 100;
-    
-    return (
-      <Modal
-        visible={!!selectedQuest}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setSelectedQuest(null)}
-      >
-        <Animated.View 
-          style={[
-            styles.modalContainer,
-            { transform: [{ translateY: modalY }] }
-          ]}
-        >
-          <View style={styles.dragBar}>
-            <View style={styles.dragIndicator} />
-          </View>
-          
-          <View style={styles.modalHeader} {...modalPanResponder.panHandlers}>
-            <TouchableOpacity 
-              style={styles.closeButton}
-              onPress={() => setSelectedQuest(null)}
-            >
-              <Ionicons name="close" size={24} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Quest {index + 1}</Text>
-            <TouchableOpacity 
-              style={styles.shuffleButtonSmall}
-              onPress={shuffleQuests}
-            >
-              <Ionicons name="shuffle" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.modalContent}>
-            <View style={[
-              styles.questCardLarge, 
-              isComplete && styles.completedCard
-            ]}>
-              <Text style={styles.questDescriptionLarge}>
-                {getQuestDescription(quest)}
-              </Text>
-            </View>
-            
-            {renderProgressButtons(index)}
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.regenerateButton]}
-                onPress={() => regenerateQuest(index)}
-                disabled={isRegenerating}
-              >
-                <Ionicons name="refresh-outline" size={24} color="#ffbb33" />
-                <Text style={styles.modalButtonText}>Regenerate</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.completeButton]}
-                onPress={() => {
-                  completeQuest(index);
-                  setSelectedQuest(null);
-                }}
-              >
-                <Ionicons name="checkmark-circle-outline" size={24} color="#3dad35" />
-                <Text style={styles.modalButtonText}>
-                  {isComplete ? 'Complete Quest' : 'Remove Quest'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Animated.View>
-      </Modal>
-    );
-  };
-
-  // Render a message when there are no quests
-  const renderNoMoreCards = () => (
-    <View style={styles.noMoreCardsContainer}>
-      <Text style={styles.noMoreCardsText}>Your quest list is empty</Text>
-      <Text style={styles.noMoreCardsSubText}>Add items to your list and we'll generate quests for you</Text>
-      
-      {/* Indicator pointing to the collapsible button at the top */}
-      <View style={styles.pointerContainer}>
-        <Ionicons name="arrow-up" size={30} color="#fff" style={styles.pointerIcon} />
-        <Text style={styles.pointerText}>Tap the button on top to add items.</Text>
-      </View>
-    </View>
-  );
-
-  // Make sure currentIndex is valid whenever questList changes
-  useEffect(() => {
-    console.log("questList changed, length:", questList.length, "currentIndex:", currentIndex);
-    
-    if (questList.length === 0) {
-      console.log("Setting currentIndex to 0 (empty list)");
-      setCurrentIndex(0);
-    } else if (currentIndex >= questList.length) {
-      console.log(`currentIndex (${currentIndex}) is out of bounds, adjusting to ${questList.length - 1}`);
-      setCurrentIndex(questList.length - 1);
-    } else {
-      console.log(`currentIndex (${currentIndex}) is valid for questList length ${questList.length}`);
-    }
-  }, [questList]);
-
-  // Check if there are any quests to display - simplified logic
-  const hasQuests = questList.length > 0;
-  console.log("Rendering quest deck, hasQuests:", hasQuests, "questList:", JSON.stringify(questList));
 
   return (
     <View style={styles.container}>
@@ -756,25 +980,63 @@ const QuestCardDeck = () => {
       )}
       
       <View style={styles.cardsContainer}>
-        {hasQuests ? (
-          // Render current card and background cards
-          <>
-            {/* Render background cards first (lower z-index) */}
-            {questList.map((item, index) => {
-              // Only render background cards, not the current one
-              if (index !== currentIndex && index >= currentIndex && index < currentIndex + 3) {
-                return renderCard(item, index);
-              }
-              return null;
-            })}
-            
-            {/* Render the current card on top */}
-            {renderCard(questList[currentIndex], currentIndex)}
-          </>
-        ) : (
-          renderNoMoreCards()
-        )}
+        {isLoading ? renderLoading() : renderCards()}
       </View>
+      
+      {/* Debug button - long press to clear storage */}
+      <TouchableOpacity
+        style={styles.debugButton}
+        onLongPress={() => {
+          console.log('Debug button long pressed');
+          Alert.alert(
+            'Debug Options',
+            'What would you like to do?',
+            [
+              {
+                text: 'Clear All Storage',
+                onPress: async () => {
+                  await clearStorage();
+                  Alert.alert('Storage Cleared', 'Restarting app...');
+                  // Force reload by setting loading state
+                  setIsLoading(true);
+                  setTimeout(() => {
+                    setQuestList([]);
+                    setQuestProgress(new Map());
+                    setCurrentIndex(0);
+                    setSelectedQuest(null);
+                    
+                    // Add demo quests after a short delay
+                    setTimeout(() => {
+                      const demoQuests: QuestItem[] = [
+                        { quest: "Read a book for 20 minutes without distractions." },
+                        { quest: "Go for a 15-minute walk without checking your phone." },
+                        { quest: "Write down three things you're grateful for today." },
+                        { quest: "Practice deep breathing for 5 minutes." }
+                      ];
+                      setQuestList(demoQuests as any);
+                      setIsLoading(false);
+                    }, 1000);
+                  }, 500);
+                }
+              },
+              {
+                text: 'Reset Focused Quest',
+                onPress: async () => {
+                  await AsyncStorage.removeItem(STORAGE_KEYS.FOCUSED_QUEST);
+                  setSelectedQuest(null);
+                  Alert.alert('Focused Quest Reset', 'Any focused quest has been cleared.');
+                }
+              },
+              {
+                text: 'Cancel',
+                style: 'cancel'
+              }
+            ]
+          );
+        }}
+      >
+        <Text style={styles.debugButtonText}>⚙️</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -791,13 +1053,12 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   cardContainer: {
-    position: 'absolute',
+    position: 'relative',  // Changed from absolute to relative for single card view
     width: SCREEN_WIDTH * 0.85,
-    height: SCREEN_WIDTH * 1.2,
+    height: SCREEN_WIDTH * 1.5, // Increase height for taller cards
     borderRadius: 20,
-    // Center in the middle of the screen
-    left: (SCREEN_WIDTH - SCREEN_WIDTH * 0.85) / 2,
-    top: (SCREEN_HEIGHT - SCREEN_WIDTH * 1.2) / 2,
+    alignSelf: 'center',  // Center the card
+    marginVertical: 20,
   },
   card: {
     width: '100%',
@@ -806,19 +1067,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  backgroundCard: {
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-    opacity: 0.8,
-  },
-  backgroundText: {
-    color: 'rgba(255, 255, 255, 0.5)',
+    shadowOffset: { width: 0, height: 4 }, // Increased shadow
+    shadowOpacity: 0.4,                   // Made shadow more visible
+    shadowRadius: 8,                      // Larger shadow radius
+    elevation: 10,                         // Increased elevation
   },
   questTitle: {
     fontSize: 22,
@@ -1038,10 +1290,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
-  regenerateButton: {
-    backgroundColor: 'rgba(255, 187, 51, 0.2)',
+  modalLaterButton: {
+    backgroundColor: 'rgba(0, 221, 255, 0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 187, 51, 0.4)',
+    borderColor: 'rgba(0, 221, 255, 0.4)',
   },
   completeButton: {
     backgroundColor: 'rgba(61, 173, 53, 0.2)',
@@ -1114,8 +1366,119 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   draggingCard: {
-    position: 'absolute',
     zIndex: 1000,
+  },
+  regenerateButton: {
+    backgroundColor: 'rgba(255, 252, 0, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 252, 0, 0.4)',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  actionButton: {
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'column',
+    minWidth: 100,
+  },
+  actionButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  secondaryButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 5,
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  secondaryButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    marginLeft: 5,
+  },
+  debugButton: {
+    position: 'absolute',
+    bottom: 60, // Move up above the bottom bar
+    right: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  debugButtonText: {
+    fontSize: 20,
+  },
+  swipeHint: {
+    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+    marginTop: 10,
+  },
+  allButtonsContainer: {
+    flexDirection: 'column', // Changed to column to stack buttons vertically
+    justifyContent: 'flex-end',
+    marginTop: 'auto', // Push to the bottom of the card
+    marginBottom: 15,
+    paddingHorizontal: 5,
+  },
+  buttonEqual: {
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'row', // Changed to row for horizontal icon and text
+    justifyContent: 'center', // Center the icon and text
+    width: '100%', // Full width
+    marginBottom: 8, // Space between buttons
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16, // Slightly larger font
+    fontWeight: '500',
+    marginLeft: 8, // Add some space between icon and text
+    textAlign: 'center',
+  },
+  acceptButton: {
+    backgroundColor: 'rgba(0, 255, 71, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 71, 0.4)',
+  },
+  declineButton: {
+    backgroundColor: 'rgba(255, 13, 61, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 13, 61, 0.4)',
+  },
+  laterButton: {
+    backgroundColor: 'rgba(0, 221, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 221, 255, 0.4)',
+  },
+  refreshButton: {
+    backgroundColor: 'rgba(255, 252, 0, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 252, 0, 0.4)',
   },
 });
 
