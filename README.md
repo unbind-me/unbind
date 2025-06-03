@@ -1,6 +1,6 @@
-## Welcome to Unbind
+## Welcome to Unbind (currently down)
 
-This project was made using React Native & Expo.
+This project was made using React Native & Expo. 
 
 Front end 12% complete.
 Back end starts at 50% front end completion.
